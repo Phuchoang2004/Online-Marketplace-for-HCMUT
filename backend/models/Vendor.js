@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require('mongoose');
 
 const VendorSchema = new mongoose.Schema({
     user: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
@@ -12,3 +12,5 @@ const VendorSchema = new mongoose.Schema({
     approvedAt: {type: Date},
     suspended: {type: Boolean, default: false},
 }, { timestamps: true });
+
+module.exports = Vendor = mongoose.model('Vendor', VendorSchema);

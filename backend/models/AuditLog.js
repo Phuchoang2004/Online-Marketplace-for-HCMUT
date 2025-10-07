@@ -1,5 +1,4 @@
-import mongoose from "mongoose";
-
+const mongoose = require('mongoose');
 const AuditLogSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     action: {
@@ -18,3 +17,5 @@ const AuditLogSchema = new mongoose.Schema({
     },
     details: { type: Object }
 }, { timestamps: true });
+
+module.exports = AuditLog = mongoose.model('AuditLog', AuditLogSchema);
