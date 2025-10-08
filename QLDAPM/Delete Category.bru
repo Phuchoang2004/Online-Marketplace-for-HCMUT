@@ -4,17 +4,12 @@ meta {
   seq: 7
 }
 
-post {
-  url: http://localhost:5000/api/category/create
+delete {
+  url: http://localhost:5000/api/category/68e6182637e254ded613795f
   body: json
   auth: none
 }
 
 headers {
   Authorization: Bearer {{accessToken}}
-}
-
-body:json {
-  {"name":"Mobile Phone",
-  "parent":"68e615795ab0cdbce7b1a58e"}
 }
