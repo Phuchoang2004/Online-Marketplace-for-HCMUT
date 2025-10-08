@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
 const config = require('config');
-const router = require("../routes/api/auth");
 const string_decoder = require("node:string_decoder");
 
 
