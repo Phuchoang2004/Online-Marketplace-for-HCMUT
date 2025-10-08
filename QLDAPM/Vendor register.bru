@@ -7,11 +7,11 @@ meta {
 post {
   url: http://localhost:5000/api/vendor/register
   body: json
-  auth: bearer
+  auth: none
 }
 
-auth:bearer {
-  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4ZTRjMTNiNDU2MmNiNDk3NmFmNGViZSIsImZ1bGxOYW1lIjoiTmd1eWVuIEhvbmcgUGh1YyIsImVtYWlsIjoiYWJjQDEyMy5jb20iLCJyb2xlIjoiQ1VTVE9NRVIiLCJwZXJtaXNzaW9uIjpbXSwiaWF0IjoxNzU5OTA4NDAwLCJleHAiOjE3NTk5MDkzMDB9.bcIbc6RGjpVAZoiPB7YZQlWdBCsYU6ZEBnDrVz6eeqs
+headers {
+  Authorization: Bearer {{accessToken}}
 }
 
 body:json {

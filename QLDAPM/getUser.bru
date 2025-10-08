@@ -7,9 +7,9 @@ meta {
 get {
   url: http://localhost:5000/
   body: none
-  auth: bearer
+  auth: none
 }
 
-auth:bearer {
-  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmdWxsTmFtZSI6Ik5ndXllbiBIb25nIFBodWMiLCJlbWFpbCI6ImFiY0AxMjMuY29tIiwicm9sZSI6IkNVU1RPTUVSIiwicGVybWlzc2lvbiI6W10sImlhdCI6MTc1OTg5NDU3OCwiZXhwIjoxNzU5ODk1NDc4fQ.XHN6uBeXrsnrELIRJDnQ_U7mPE-DP2BNEnkfb6wvjJY
+headers {
+  Authorization: Bearer {{accessToken}}
 }
