@@ -14,3 +14,8 @@ body:json {
   {"email":"abc@123.com",
   "password":"123456789"}
 }
+
+tests {
+  const response = res.getBody()
+  bru.setEnvVar('accessToken', response.token)
+}
