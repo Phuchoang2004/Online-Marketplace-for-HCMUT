@@ -1,0 +1,20 @@
+meta {
+  name: Create Category
+  type: http
+  seq: 6
+}
+
+post {
+  url: http://localhost:5000/api/category/create
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {"name":"Mobile Phone",
+  "parent":"68e615795ab0cdbce7b1a58e"}
+}

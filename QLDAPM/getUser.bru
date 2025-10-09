@@ -1,0 +1,15 @@
+meta {
+  name: getUser
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://localhost:5000/
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
