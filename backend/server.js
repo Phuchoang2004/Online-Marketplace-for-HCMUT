@@ -8,10 +8,11 @@ const cors = require('cors')
 //connect db
 connectDB();
 
-app.use(cors({origin:'http://localhost:3000'}));
-app.use(express.json({extended : false}));
+app.use(cors({ origin: 'http://localhost:3000' }));
+app.use(express.json({ extended: false }));
 const auth = require('./middlewares/authMiddleware');
 app.use("/", require("./routes/api/users"));
+app.use("/", require("./routes/api/products"));
 app.use("/", auth, require("./routes/api/vendors"));
 app.use("/", auth, require("./routes/api/categories"));
-app.listen(PORT, ()=> console.log(`server started on port ${PORT}!`));
+app.listen(PORT, () => console.log(`server started on port ${PORT}!`));
