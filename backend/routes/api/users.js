@@ -65,7 +65,6 @@ router.post('/api/login',[
             return res.status(400).json({"error": "Wrong email or password"})
         }
         const payload = {
-            id: user.id,
             fullName: user.fullName,
             email: user.email,
             role: user.role,
