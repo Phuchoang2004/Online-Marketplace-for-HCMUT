@@ -5,7 +5,7 @@ const NotificationSchema = new mongoose.Schema({
         type: String,
         enum: ['VENDOR_APPROVAL', 'PRODUCT_APPROVAL', 'ORDER_STATUS', 'MESSAGE']
     },
-    message: { type: String, required: true },
+    message: { type: Text, required: true },
     isRead: { type: Boolean, default: false }
 }, { timestamps: true });
 

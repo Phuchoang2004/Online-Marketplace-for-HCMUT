@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
     fullName: { type: String, required: true },
-    email: { type: String, unique: true, required: true },
+    email:    { type: String, unique: true, required: true },
     passwordHash: { type: String, required: true },
 
     role: {
@@ -12,9 +12,19 @@ const UserSchema = new mongoose.Schema({
     },
     isActive: { type: Boolean, default: true },
     emailVerified: { type: Boolean, default: false },
-    permissions: ['APPROVE_VENDOR', 'MANAGE_CATEGORY', 'APPROVE_PRODUCT'],
-    vendorProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor' }
 
+    vendorProfile: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Vendor',
+        default: undefined
+    },
+
+    permissions: ['APPROVE_VENDOR', 'MANAGE_CATEGORY', 'APPROVE_PRODUCT'],
 }, { timestamps: true });
 
-module.exports = User = mongoose.model('User', UserSchema);
+UserSchema.index(
+    { vendorProfile: 1 },
+    { unique: true, partialFilterExpression: { vendorProfile: { $type: 'objectId' } } }
+);
+
+module.exports = mongoose.model('User', UserSchema);
