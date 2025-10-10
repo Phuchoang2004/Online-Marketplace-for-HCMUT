@@ -14,4 +14,6 @@ const auth = require('./middlewares/authMiddleware');
 app.use("/", require("./routes/api/users"));
 app.use("/", auth, require("./routes/api/vendors"));
 app.use("/", auth, require("./routes/api/categories"));
+const productsRoute = require('./routes/api/products');
+app.use(productsRoute);
 app.listen(PORT, ()=> console.log(`server started on port ${PORT}!`));
