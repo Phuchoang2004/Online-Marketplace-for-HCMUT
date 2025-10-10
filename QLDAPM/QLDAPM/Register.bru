@@ -1,0 +1,17 @@
+meta {
+  name: Register
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://localhost:5000/api/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {"fullName":"Nguyen Hong Phuc",
+  "email":"abc@123.com",
+  "password":"123456789"}
+}

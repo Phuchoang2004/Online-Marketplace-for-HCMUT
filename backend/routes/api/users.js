@@ -71,6 +71,7 @@ router.post('/api/login',[
             email: user.email,
             role: user.role,
             permission: user.permissions,
+            id: user.id,
         }
         jwt.sign(payload, process.env.SECRET_KEY,{expiresIn: '15m'},(err, token) => {
             if(err){

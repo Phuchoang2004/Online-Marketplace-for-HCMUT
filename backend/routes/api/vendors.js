@@ -42,7 +42,7 @@ router.post('/api/vendor/register', auth, checkSchema(vendorValidationSchema), a
         if (existed) {
             return res.status(403).json({ errors: 'You already have a vendor registration pending or approved' });
         }
-
+        console.log(req.user.id)
         const vendor = await Vendor.create({
             user: req.user.id,
             businessName: business_name,

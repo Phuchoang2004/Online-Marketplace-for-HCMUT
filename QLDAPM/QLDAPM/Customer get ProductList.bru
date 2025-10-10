@@ -1,0 +1,22 @@
+meta {
+  name: Customer get ProductList
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:5050/api/products?keyword=speaker&sortBy=newest&page=1&limit=12
+  body: none
+  auth: bearer
+}
+
+params:query {
+  keyword: speaker
+  sortBy: newest
+  page: 1
+  limit: 12
+}
+
+auth:bearer {
+  token: 
+}

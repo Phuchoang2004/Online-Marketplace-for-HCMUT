@@ -1,0 +1,27 @@
+meta {
+  name: Vendor Create Product
+  type: http
+  seq: 9
+}
+
+post {
+  url: http://localhost:5050/api/products
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: 
+}
+
+body:json {
+  {
+    "category": "68e7d98f3a59bb832cb461da",
+    "name": "Bluetooth Speaker",
+    "description": "Portable, 10h battery",
+    "price": 499000,
+    "stock": 50,
+    "images": [{"url": "https://img.example/speaker.jpg"}]
+  }
+  
+}

@@ -1,0 +1,21 @@
+meta {
+  name: login
+  type: http
+  seq: 14
+}
+
+post {
+  url: http://localhost:5000/api/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {"email":"abc@123.com",
+  "password":"123456789"}
+}
+
+tests {
+  const response = res.getBody()
+  bru.setEnvVar('accessToken', response.token)
+}
