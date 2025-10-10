@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const VendorSchema = new mongoose.Schema({
     user: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
     businessName: {type: String, required: true},
-    description: {type: String},
+    description: {type: Text},
     approvalStatus:{type: String,
     enum: ['PENDING', 'APPROVED', 'REJECTED'],
     default: 'PENDING'},

@@ -67,7 +67,6 @@ router.post('/api/login',[
         console.log(`[LOGIN SUCCESS] User: ${user.fullName} | Role: ${user.role} | Permissions: ${user.permissions}`);
 
         const payload = {
-            id: user.id,
             fullName: user.fullName,
             email: user.email,
             role: user.role,
