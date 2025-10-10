@@ -1,0 +1,23 @@
+meta {
+  name: VendorUpdateProduct
+  type: http
+  seq: 11
+}
+
+put {
+  url: http://localhost:5050/api/products/68e7e4e033ff5dd11b626533
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: 
+}
+
+body:json {
+  {
+    "price": 450000,
+    "stock": 50
+  }
+  
+}

@@ -1,0 +1,20 @@
+meta {
+  name: Staff reject Product
+  type: http
+  seq: 8
+}
+
+post {
+  url: http://localhost:5050/api/products/68e7e4e033ff5dd11b626533/reject
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: 
+}
+
+body:json {
+  { "reason": "Hình ảnh không đạt chất lượng" }
+  
+}
