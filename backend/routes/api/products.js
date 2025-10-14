@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 5 } });
 const { check, validationResult } = require('express-validator');
 
 const auth = require('../../middlewares/authMiddleware');
@@ -48,6 +50,7 @@ async function getVendorAndOwnerUser(vendorId) {
 router.post(
     '/api/products',
     auth,
+    upload.array('images', 5),
     [
         check('category').notEmpty().withMessage('category is required'),
         check('name').notEmpty().withMessage('name is required'),
@@ -60,7 +63,21 @@ router.post(
 
         try {
             const vendorId = await resolveApprovedVendorId(req.user);
-            const { category, name, description, price, stock, images } = req.body;
+            const { category, name, description, price, stock } = req.body;
+            let images = [];
+            if (req.files && req.files.length > 0) {
+                // For demo: convert to in-memory data URLs. In production, upload to storage (S3, cloudinary) and save returned URLs.
+                images = req.files.map((f) => ({ url: `data:${f.mimetype};base64,${f.buffer.toString('base64')}` }));
+            } else if (req.body.images) {
+                try {
+                    const parsed = typeof req.body.images === 'string' ? JSON.parse(req.body.images) : req.body.images;
+                    if (Array.isArray(parsed)) {
+                        images = parsed.filter((i) => i && i.url);
+                    }
+                } catch (e) {
+                    // ignore invalid images payload
+                }
+            }
 
             const product = await Product.create({
                 vendor: vendorId,

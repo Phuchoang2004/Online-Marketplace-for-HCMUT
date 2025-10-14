@@ -28,6 +28,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
       onClick: () => navigate(ROUTES.DASHBOARD),
     },
     {
+      key: ROUTES.PRODUCTS,
+      icon: <DashboardOutlined />,
+      label: 'Products',
+      onClick: () => navigate(ROUTES.PRODUCTS),
+    },
+    {
       key: ROUTES.PROFILE,
       icon: <UserOutlined />,
       label: 'Profile',

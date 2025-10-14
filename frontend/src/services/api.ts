@@ -37,10 +37,26 @@ class ApiClient {
       (response: AxiosResponse<ApiResponse>) => {
         return response;
       },
-      (error) => {
+      async (error) => {
+        const isNetworkRefused = !error.response && error.message && /ECONNREFUSED|Network Error/i.test(error.message);
+        const base = this.client.defaults.baseURL || '';
+        const is8000 = base.includes('://localhost:8000');
+        if (isNetworkRefused && is8000) {
+          try {
+            const retry = axios.create({
+              baseURL: base.replace('localhost:8000', 'localhost:5000'),
+              timeout: 10000,
+              headers: this.client.defaults.headers,
+            });
+            const original = error.config;
+            const resp = await retry.request(original);
+            return resp;
+          } catch (e) {
+            // fallthrough to standard handling
+          }
+        }
+
         const appError = handleApiError(error);
-        
-        // Handle 401 - redirect to login
         if (appError.statusCode === 401) {
           Cookies.remove('auth_token');
           window.location.href = '/login';
@@ -54,7 +70,7 @@ class ApiClient {
   async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     try {
       const response = await this.client.get<ApiResponse<T>>(url, config);
-      return response.data.data;
+      return (response.data as any).data;
     } catch (error) {
       throw error;
     }
@@ -63,7 +79,7 @@ class ApiClient {
   async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
     try {
       const response = await this.client.post<ApiResponse<T>>(url, data, config);
-      return response.data.data;
+      return (response.data as any).data;
     } catch (error) {
       throw error;
     }
@@ -72,7 +88,7 @@ class ApiClient {
   async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
     try {
       const response = await this.client.put<ApiResponse<T>>(url, data, config);
-      return response.data.data;
+      return (response.data as any).data;
     } catch (error) {
       throw error;
     }
@@ -81,7 +97,7 @@ class ApiClient {
   async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     try {
       const response = await this.client.delete<ApiResponse<T>>(url, config);
-      return response.data.data;
+      return (response.data as any).data;
     } catch (error) {
       throw error;
     }
@@ -90,10 +106,35 @@ class ApiClient {
   async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
     try {
       const response = await this.client.patch<ApiResponse<T>>(url, data, config);
-      return response.data.data;
+      return (response.data as any).data;
     } catch (error) {
       throw error;
     }
+  }
+
+  async getRaw<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.get<T>(url, config);
+    return response.data as unknown as T;
+  }
+
+  async postRaw<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.post<T>(url, data, config);
+    return response.data as unknown as T;
+  }
+
+  async putRaw<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.put<T>(url, data, config);
+    return response.data as unknown as T;
+  }
+
+  async deleteRaw<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.delete<T>(url, config);
+    return response.data as unknown as T;
+  }
+
+  async patchRaw<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.patch<T>(url, data, config);
+    return response.data as unknown as T;
   }
 }
 

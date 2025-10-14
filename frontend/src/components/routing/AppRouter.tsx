@@ -7,6 +7,8 @@ import { SettingsPage } from '@/pages/settings/SettingsPage';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ROUTES } from '@/config/routes';
+import { ProductsPage } from '@/pages/products/ProductsPage';
+import { RegisterPage } from '@/pages/auth/RegisterPage';
 
 export const AppRouter: React.FC = () => {
   return (
@@ -14,6 +16,7 @@ export const AppRouter: React.FC = () => {
       <Routes>
         {/* Public routes */}
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+        <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
 
         {/* Protected routes with layout */}
         <Route
@@ -42,6 +45,16 @@ export const AppRouter: React.FC = () => {
             <ProtectedRoute>
               <MainLayout>
                 <SettingsPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.PRODUCTS}
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ProductsPage />
               </MainLayout>
             </ProtectedRoute>
           }
