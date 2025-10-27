@@ -10,7 +10,16 @@ import { ROUTES } from '@/config/routes';
 import { ProductsPage } from '@/pages/products/ProductsPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 
+// FE7 - Vendor Register, Admin Confirm
+import { useAuth } from '@/hooks/useAuth'; // Cần hook này để lấy role
+import { RegisterVendorPage } from '@/pages/vendor/RegisterVendorPage';
+import { VendorApprovalPage } from '@/pages/admin/VendorApprovalPage';
+// FE7 - Vendor Register, Admin Confirm
+
 export const AppRouter: React.FC = () => {
+  // FE7 - Vendor Register, Admin Confirm
+  useAuth();
+  // FE7 - Vendor Register, Admin Confirm
   return (
     <BrowserRouter>
       <Routes>
@@ -59,10 +68,33 @@ export const AppRouter: React.FC = () => {
             </ProtectedRoute>
           }
         />
-
+        
+        {/* Page for customer */}
+        <Route
+          path={ROUTES.REGISTER_VENDOR}
+          element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <MainLayout>
+                <RegisterVendorPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        {/* Page for admin/staff */}
+        <Route
+          path={ROUTES.ADMIN_VENDORS}
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'staff']}>
+              <MainLayout>
+                <VendorApprovalPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
         {/* Catch all route - redirect to dashboard */}
         <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
       </Routes>
     </BrowserRouter>
   );
 };
+

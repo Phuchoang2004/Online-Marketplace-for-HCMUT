@@ -9,6 +9,11 @@ export const ROUTES = {
   SETTINGS: '/settings',
   PRODUCTS: '/products',
   
+  // FE7 - Vendor Register, Admin Confirm
+  REGISTER_VENDOR: '/register-vendor',
+  ADMIN_VENDORS: '/admin/vendors',
+  // FE7 - Vendor Register, Admin Confirm
+
   // Fallback
   NOT_FOUND: '/404',
 } as const;
