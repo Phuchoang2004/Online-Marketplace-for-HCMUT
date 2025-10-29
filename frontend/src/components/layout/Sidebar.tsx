@@ -8,6 +8,8 @@ import {
   ShopOutlined,
   AuditOutlined,
   CheckSquareOutlined,
+  SafetyCertificateOutlined,
+  AppstoreOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/config/routes';
@@ -54,12 +56,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
 
   // Handle role admin/staff
   if (user?.role === 'admin' || user?.role === 'staff') {
-    menuItems.push({
-      key: ROUTES.ADMIN_VENDORS,
-      icon: <CheckSquareOutlined />,
-      label: 'Confirmation',
-      onClick: () => navigate(ROUTES.ADMIN_VENDORS),
-    });
+    menuItems.push(
+      {
+        key: ROUTES.ADMIN_VENDORS,
+        icon: <CheckSquareOutlined />,
+        label: 'Confirmation',
+        onClick: () => navigate(ROUTES.ADMIN_VENDORS),
+      },
+      {
+        key: ROUTES.ADMIN_PRODUCTS_APPROVAL,
+        icon: <SafetyCertificateOutlined />,
+        label: 'Product Approvals',
+        onClick: () => navigate(ROUTES.ADMIN_PRODUCTS_APPROVAL),
+      },
+      {
+        key: ROUTES.ADMIN_CATEGORIES,
+        icon: <AppstoreOutlined />,
+        label: 'Categories',
+        onClick: () => navigate(ROUTES.ADMIN_CATEGORIES),
+      }
+    );
   }
 
   menuItems.push(

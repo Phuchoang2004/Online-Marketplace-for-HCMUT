@@ -1,25 +1,33 @@
 import React, { useMemo, useState } from 'react';
-import { Button, Card, Form, Input, InputNumber, Modal, Space, Table, Tag, Typography, Upload } from 'antd';
+import { Button, Card, Form, Input, InputNumber, Modal, Space, Table, Tag, Typography, Upload, Select } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
 import { productService } from '@/services/products';
+import { categoryService } from '@/services/categories';
 import { CreateProductInput, Product, UpdateProductInput } from '@/types/product';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/useToast';
+import { useAuth } from '@/hooks/useAuth';
 
 const { Title } = Typography;
 
 export const ProductsPage: React.FC = () => {
   const queryClient = useQueryClient();
   const { showErrorMessage, showSuccessMessage } = useToast();
+  const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [fileList, setFileList] = useState<any[]>([]);
 
   const [form] = Form.useForm<CreateProductInput | UpdateProductInput>();
 
+  const isVendor = user?.role === 'vendor';
+  const productsQueryKey = isVendor ? ['vendor-products'] : ['products'];
   const { data, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ['products'],
-    queryFn: () => productService.list({ page: 1, limit: 50, sortBy: 'newest' }),
+    queryKey: productsQueryKey,
+    queryFn: () =>
+      isVendor
+        ? productService.listMine().then((items) => ({ items }))
+        : productService.list({ page: 1, limit: 50, sortBy: 'newest' }),
     staleTime: 0,
     gcTime: 5 * 60 * 1000,
     refetchOnMount: 'always',
@@ -27,11 +35,16 @@ export const ProductsPage: React.FC = () => {
     refetchOnReconnect: true,
   });
 
+  const { data: categories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: categoryService.list,
+  });
+
   const createMutation = useMutation({
     mutationFn: (values: CreateProductInput) => productService.create(values),
     onSuccess: () => {
       showSuccessMessage('Product created');
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: productsQueryKey });
       setIsModalOpen(false);
       form.resetFields();
     },
@@ -42,7 +55,7 @@ export const ProductsPage: React.FC = () => {
     mutationFn: ({ id, values }: { id: string; values: UpdateProductInput }) => productService.update(id, values),
     onSuccess: () => {
       showSuccessMessage('Product updated');
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: productsQueryKey });
       setIsModalOpen(false);
       setEditingProduct(null);
       form.resetFields();
@@ -54,7 +67,7 @@ export const ProductsPage: React.FC = () => {
     mutationFn: (id: string) => productService.remove(id),
     onSuccess: () => {
       showSuccessMessage('Product deleted');
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: productsQueryKey });
     },
     onError: showErrorMessage,
   });
@@ -242,8 +255,13 @@ export const ProductsPage: React.FC = () => {
           <Form.Item name="stock" label="Stock">
             <InputNumber min={0} precision={0} style={{ width: '100%' }} />
           </Form.Item>
-          <Form.Item name="category" label="Category" rules={[{ required: true, message: 'Please enter category id' }]}>
-            <Input placeholder="Category ObjectId" />
+          <Form.Item name="category" label="Category" rules={[{ required: true, message: 'Please select category' }]}>
+            <Select
+              placeholder="Select category"
+              options={(categories || []).map((c) => ({ value: c.id, label: c.name }))}
+              showSearch
+              optionFilterProp="label"
+            />
           </Form.Item>
           <Form.Item name="description" label="Description">
             <Input.TextArea rows={4} />

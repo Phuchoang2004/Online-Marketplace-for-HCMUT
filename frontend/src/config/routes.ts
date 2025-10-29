@@ -12,6 +12,8 @@ export const ROUTES = {
   // FE7 - Vendor Register, Admin Confirm
   REGISTER_VENDOR: '/register-vendor',
   ADMIN_VENDORS: '/admin/vendors',
+  ADMIN_CATEGORIES: '/admin/categories',
+  ADMIN_PRODUCTS_APPROVAL: '/admin/products-approval',
   // FE7 - Vendor Register, Admin Confirm
 
   // Fallback

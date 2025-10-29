@@ -14,6 +14,8 @@ import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { useAuth } from '@/hooks/useAuth'; // Cần hook này để lấy role
 import { RegisterVendorPage } from '@/pages/vendor/RegisterVendorPage';
 import { VendorApprovalPage } from '@/pages/admin/VendorApprovalPage';
+import { CategoryManagementPage } from '@/pages/admin/CategoryManagementPage';
+import { ProductApprovalPage } from '@/pages/admin/ProductApprovalPage';
 // FE7 - Vendor Register, Admin Confirm
 
 export const AppRouter: React.FC = () => {
@@ -87,6 +89,26 @@ export const AppRouter: React.FC = () => {
             <ProtectedRoute allowedRoles={['admin', 'staff']}>
               <MainLayout>
                 <VendorApprovalPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.ADMIN_CATEGORIES}
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'staff']}>
+              <MainLayout>
+                <CategoryManagementPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.ADMIN_PRODUCTS_APPROVAL}
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'staff']}>
+              <MainLayout>
+                <ProductApprovalPage />
               </MainLayout>
             </ProtectedRoute>
           }

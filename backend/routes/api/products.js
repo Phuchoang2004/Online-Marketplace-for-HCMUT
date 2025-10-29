@@ -46,6 +46,19 @@ async function getVendorAndOwnerUser(vendorId) {
    PRODUCT CRUD (Vendor)
    =========================================================== */
 
+// LIST VENDOR'S OWN PRODUCTS (all statuses)
+router.get('/api/vendor/products', auth, async (req, res) => {
+    try {
+        const vendorId = await resolveApprovedVendorId(req.user);
+        const items = await Product.find({ vendor: vendorId }).sort({ createdAt: -1 });
+        return res.json({ success: true, data: items });
+    } catch (e) {
+        const status = e?.status || 400;
+        const msg = e?.msg || e?.message || 'Bad request';
+        return res.status(status).json({ errors: msg });
+    }
+});
+
 // CREATE PRODUCT (Vendor đã được duyệt)
 router.post(
     '/api/products',

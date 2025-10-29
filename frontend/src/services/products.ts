@@ -54,4 +54,26 @@ export const productService = {
     const raw = await apiClient.deleteRaw<any>(`/products/${id}`);
     return raw as { message?: string };
   },
+
+  async listPending(): Promise<Product[]> {
+    const raw = await apiClient.getRaw<any>('/products-pending');
+    const items = raw?.data ?? raw ?? [];
+    return normalizeProducts(items);
+  },
+
+  async listMine(): Promise<Product[]> {
+    const raw = await apiClient.getRaw<any>('/vendor/products');
+    const items = raw?.data ?? raw ?? [];
+    return normalizeProducts(items);
+  },
+
+  async approvePending(id: string): Promise<{ success?: boolean; message?: string }>{
+    const raw = await apiClient.postRaw<any>(`/products/${id}/approve`);
+    return raw as { success?: boolean; message?: string };
+  },
+
+  async rejectPending(id: string, reason: string): Promise<{ success?: boolean; message?: string }>{
+    const raw = await apiClient.postRaw<any>(`/products/${id}/reject`, { reason });
+    return raw as { success?: boolean; message?: string };
+  },
 };

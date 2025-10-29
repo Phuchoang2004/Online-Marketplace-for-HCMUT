@@ -1,19 +1,21 @@
 // src/services/vendor.ts
 import { apiClient } from './api';
 import { CreateVendorInput, RejectVendorInput, Vendor } from '@/types/vendor';
-import { mockVendors } from '@/mocks/vendor.mock';
 
-// Đọc biến môi trường (Vite)
-const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
-
-// Hàm giả lập độ trễ mạng
-const mockApiCall = <T>(data: T): Promise<T> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(data);
-    }, 500);
-  });
-};
+function normalizeVendor(payload: any): Vendor {
+  const v = payload?.information ?? payload?.vendor ?? payload?.data ?? payload ?? {};
+  const id = v._id ?? v.id ?? '';
+  const user = typeof v.user === 'object' ? (v.user?._id ?? '') : (v.user ?? '');
+  return {
+    id,
+    user,
+    business_name: v.businessName ?? v.business_name ?? '',
+    description: v.description ?? '',
+    approvalStatus: v.approvalStatus ?? 'PENDING',
+    rejectionReason: v.rejectionReason,
+    createdAt: v.createdAt ?? new Date().toISOString(),
+  } as Vendor;
+}
 
 export const vendorService = {
   /**
@@ -21,67 +23,35 @@ export const vendorService = {
    * Endpoint: POST /api/vendor/register
    */
   async register(input: CreateVendorInput): Promise<Vendor> {
-    if (USE_MOCKS) {
-      console.warn('ĐANG SỬ DỤNG MOCK DATA CHO: vendorService.register');
-      const newVendor: Vendor = {
-        id: `vendor-${Math.floor(Math.random() * 1000)}`,
-        user: 'customer-id-456', // ID của user đang đăng nhập
-        ...input,
-        approvalStatus: 'PENDING',
-        createdAt: new Date().toISOString(),
-      };
-      mockVendors.push(newVendor); // Thêm vào danh sách mock
-      return mockApiCall(newVendor);
-    }
-    // API thật
-    return apiClient.post<Vendor>('/vendor/register', input);
+    const raw = await apiClient.postRaw<any>('/vendor/register', input);
+    return normalizeVendor(raw);
   },
 
   /**
    * (ADMIN/STAFF) Lấy danh sách vendors để duyệt
-   * Endpoint: GET /api/vendor (Giả định, vì README không có)
+   * Endpoint: GET /api/vendors
    */
   async list(): Promise<Vendor[]> {
-    if (USE_MOCKS) {
-      console.warn('ĐANG SỬ DỤNG MOCK DATA CHO: vendorService.list');
-      return mockApiCall(mockVendors);
-    }
-    // API thật (bạn có thể cần sửa lại endpoint)
-    return apiClient.get<Vendor[]>('/vendor'); 
+    const raw = await apiClient.getRaw<any>('/vendors');
+    const list = raw?.data ?? raw?.items ?? raw ?? [];
+    return (list as any[]).map((v) => normalizeVendor(v));
   },
 
   /**
    * (ADMIN/STAFF) Chấp thuận vendor
    * Endpoint: POST /api/vendor/:id/approve
    */
-  async approve(id: string): Promise<Vendor> {
-    if (USE_MOCKS) {
-      console.warn('ĐANG SỬ DỤNG MOCK DATA CHO: vendorService.approve');
-      const vendor = mockVendors.find(v => v.id === id);
-      if (vendor) {
-        vendor.approvalStatus = 'APPROVED';
-      }
-      return mockApiCall(vendor as Vendor);
-    }
-    // API thật
-    return apiClient.post<Vendor>(`/vendor/${id}/approve`);
+  async approve(id: string): Promise<{ success: boolean; message?: string }> {
+    const raw = await apiClient.postRaw<{ success: boolean; message?: string }>(`/vendor/${id}/approve`);
+    return raw;
   },
 
   /**
    * (ADMIN/STAFF) Từ chối vendor
    * Endpoint: POST /api/vendor/:id/reject
    */
-  async reject(id: string, input: RejectVendorInput): Promise<Vendor> {
-    if (USE_MOCKS) {
-      console.warn('ĐANG SỬ DỤNG MOCK DATA CHO: vendorService.reject');
-      const vendor = mockVendors.find(v => v.id === id);
-      if (vendor) {
-        vendor.approvalStatus = 'REJECTED';
-        vendor.rejectionReason = input.reason;
-      }
-      return mockApiCall(vendor as Vendor);
-    }
-    // API thật
-    return apiClient.post<Vendor>(`/vendor/${id}/reject`, input);
+  async reject(id: string, input: RejectVendorInput): Promise<{ success: boolean; message?: string }> {
+    const raw = await apiClient.postRaw<{ success: boolean; message?: string }>(`/vendor/${id}/reject`, input);
+    return raw;
   },
 };

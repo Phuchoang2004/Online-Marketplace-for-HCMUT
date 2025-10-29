@@ -5,6 +5,18 @@ const {json} = require("express");
 const Category = require("../../models/Category");
 
 
+// @route GET api/categories
+// @description list categories
+// @access Protected (auth applied at router mount)
+router.get('/api/categories', async (req, res) => {
+    try {
+        const items = await Category.find({}).sort({ createdAt: -1 }).lean();
+        return res.json({ success: true, data: items });
+    } catch (err) {
+        return res.status(400).json({ errors: err.message });
+    }
+});
+
 // @route POST api/category/create
 // @description create category
 // @access Public
