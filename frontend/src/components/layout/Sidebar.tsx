@@ -47,6 +47,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   // Handle role customer
   if (user?.role === 'customer') {
     menuItems.push({
+      key: ROUTES.SHOPPING,
+      icon: <AppstoreOutlined />,
+      label: 'Shopping',
+      onClick: () => navigate(ROUTES.SHOPPING),
+    });
+    menuItems.push({
       key: ROUTES.REGISTER_VENDOR,
       icon: <AuditOutlined />,
       label: 'Register Seller',

@@ -16,6 +16,9 @@ export const ROUTES = {
   ADMIN_PRODUCTS_APPROVAL: '/admin/products-approval',
   // FE7 - Vendor Register, Admin Confirm
 
+  // Shopping page chỉ cho customer
+  SHOPPING: '/shopping',
+
   // Fallback
   NOT_FOUND: '/404',
 } as const;

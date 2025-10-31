@@ -9,6 +9,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { ROUTES } from '@/config/routes';
 import { ProductsPage } from '@/pages/products/ProductsPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
+import ShoppingPage from '@/pages/products/shopping';
 
 // FE7 - Vendor Register, Admin Confirm
 import { useAuth } from '@/hooks/useAuth'; // Cần hook này để lấy role
@@ -66,6 +67,16 @@ export const AppRouter: React.FC = () => {
             <ProtectedRoute>
               <MainLayout>
                 <ProductsPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.SHOPPING}
+          element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <MainLayout>
+                <ShoppingPage />
               </MainLayout>
             </ProtectedRoute>
           }
