@@ -1,0 +1,12 @@
+/* CSS căn chỉnh layout căn giữa, responsive cho ProductsPage */
+.ant-card { box-shadow: 0 2px 8px #ece9f4 !important; }
+.ant-btn-primary { background: #5732E0; border: none; }
+body, html { background: #F5F6FA !important; }
+
+@media (max-width: 900px) {
+  .banner-image { display: none !important; }
+}
+
+@media (max-width: 600px) {
+  .ant-card { max-width: 100% !important; }
+}

@@ -288,3 +288,49 @@ If you have any questions or need help, please:
 ---
 
 Made with ❤️ using React, TypeScript & Ant Design
+
+
+26/10/2025 - Hoa - FE7
+
+1. File Thêm Mới
+
+.env.development
+Mục đích: Thêm biến môi trường VITE_USE_MOCKS=true để bật/tắt chế độ mock.
+
+src/types/vendor.ts
+Mục đích: Định nghĩa các interface (kiểu dữ liệu) cho Vendor, CreateVendorInput, v.v.
+
+src/mocks/vendor.mock.ts
+Mục đích: Chứa dữ liệu vendor giả (mockVendors) cho trang duyệt.
+
+src/services/vendor.ts
+Mục đích: Tạo service mới để xử lý logic API (thật và giả) cho các chức năng của Vendor (register, list, approve, reject).
+
+src/pages/vendor/RegisterVendorPage.tsx
+Mục đích: Trang UI cho customer gửi đơn đăng ký bán hàng.
+
+src/pages/admin/VendorApprovalPage.tsx
+Mục đích: Trang UI cho admin xem và duyệt các đơn đăng ký bán hàng.
+
+2. File Đã Chỉnh Sửa
+
+src/services/auth.ts
+Thay đổi: Thêm logic if (USE_MOCKS) để xử lý 3 tài khoản mock (admin, customer, vendor).
+
+src/services/products.ts
+Thay đổi: Thêm logic if (USE_MOCKS) vào hàm list để trả về dữ liệu từ products.mock.ts.
+
+src/types/auth.ts (hoặc file định nghĩa User của bạn)
+Thay đổi: Sửa role của User từ 'user' | 'admin' thành 'customer' | 'vendor' | 'staff' | 'admin'.
+
+src/config/routes.ts
+Thay đổi: Thêm hai hằng số route mới là REGISTER_VENDOR và ADMIN_VENDORS.
+
+src/components/auth/ProtectedRoute.tsx
+Thay đổi: Chấp nhận prop allowedRoles (một mảng các vai trò) thay vì isAllowed (boolean), cho phép phân quyền dựa trên vai trò.
+
+src/routing/AppRouter.tsx
+Thay đổi: Import các trang mới và thêm <Route> cho REGISTER_VENDOR và ADMIN_VENDORS, bọc chúng bằng ProtectedRoute với allowedRoles tương ứng.
+
+src/components/layout/Sidebar.tsx
+Thay đổi: Thêm useAuth để lấy vai trò của user, sau đó hiển thị động các menu "Đăng ký bán" (cho customer) hoặc "Duyệt gian hàng" (cho admin).

@@ -16,6 +16,27 @@ const vendorValidationSchema = {
 };
 
 /* =========================================
+   GET /api/vendors (list all or filter by status)
+   Only STAFF/ADMIN
+   ========================================= */
+router.get('/api/vendors', auth, async (req, res) => {
+    if (!['STAFF', 'ADMIN'].includes(req.user.role)) {
+        return res.status(403).json({ errors: 'Only staff/admin can view vendors' });
+    }
+
+    try {
+        const { status } = req.query; // optional: PENDING | APPROVED | REJECTED
+        const filter = {};
+        if (status) filter.approvalStatus = status;
+
+        const items = await Vendor.find(filter).lean();
+        return res.json({ success: true, data: items });
+    } catch (err) {
+        return res.status(400).json({ errors: err.message });
+    }
+});
+
+/* =========================================
    POST /api/vendor/register
    ========================================= */
 router.post('/api/vendor/register', auth, checkSchema(vendorValidationSchema), async (req, res) => {

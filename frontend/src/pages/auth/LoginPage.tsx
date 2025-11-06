@@ -1,7 +1,7 @@
 import React from 'react';
 import { Form, Input, Button, Card, Typography, Divider } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { LoginCredentials } from '@/types/auth';
 import { ROUTES } from '@/config/routes';
@@ -102,10 +102,14 @@ export const LoginPage: React.FC = () => {
 
         <Divider />
         
-        <div style={{ textAlign: 'center' }}>
+        <div style={{ textAlign: 'center', marginBottom: 8 }}>
           <Text type="secondary" style={{ fontSize: '12px' }}>
             Demo credentials: admin@example.com / admin123
           </Text>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <Text>Don't have an account? </Text>
+          <Link to={ROUTES.REGISTER}>Register</Link>
         </div>
       </Card>
     </div>

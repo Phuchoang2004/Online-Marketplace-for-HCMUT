@@ -3,7 +3,10 @@ export interface User {
   email: string;
   name: string;
   avatar?: string;
-  role: 'admin' | 'user';
+  // FE 7: FE7 - Vendor Register, Admin Confirm
+  //role: 'admin' | 'user';
+  role: 'customer' | 'vendor' | 'staff' | 'admin';
+  // FE7 - Vendor Register, Admin Confirm
   createdAt: string;
   updatedAt: string;
 }

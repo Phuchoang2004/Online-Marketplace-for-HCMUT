@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { authService } from '@/services/auth';
 import { LoginCredentials } from '@/types/auth';
-import { showErrorMessage, showSuccessMessage } from '@/utils/error';
+import { useToast } from '@/hooks/useToast';
 
 export const useAuth = () => {
   const queryClient = useQueryClient();
+  const { showErrorMessage, showSuccessMessage } = useToast();
 
   // Get current user query
   const {

@@ -7,13 +7,28 @@ import { SettingsPage } from '@/pages/settings/SettingsPage';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ROUTES } from '@/config/routes';
+import { ProductsPage } from '@/pages/products/ProductsPage';
+import { RegisterPage } from '@/pages/auth/RegisterPage';
+import ShoppingPage from '@/pages/products/shopping';
+
+// FE7 - Vendor Register, Admin Confirm
+import { useAuth } from '@/hooks/useAuth'; // Cần hook này để lấy role
+import { RegisterVendorPage } from '@/pages/vendor/RegisterVendorPage';
+import { VendorApprovalPage } from '@/pages/admin/VendorApprovalPage';
+import { CategoryManagementPage } from '@/pages/admin/CategoryManagementPage';
+import { ProductApprovalPage } from '@/pages/admin/ProductApprovalPage';
+// FE7 - Vendor Register, Admin Confirm
 
 export const AppRouter: React.FC = () => {
+  // FE7 - Vendor Register, Admin Confirm
+  useAuth();
+  // FE7 - Vendor Register, Admin Confirm
   return (
     <BrowserRouter>
       <Routes>
         {/* Public routes */}
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+        <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
 
         {/* Protected routes with layout */}
         <Route
@@ -46,10 +61,73 @@ export const AppRouter: React.FC = () => {
             </ProtectedRoute>
           }
         />
-
+        <Route
+          path={ROUTES.PRODUCTS}
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ProductsPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.SHOPPING}
+          element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <MainLayout>
+                <ShoppingPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* Page for customer */}
+        <Route
+          path={ROUTES.REGISTER_VENDOR}
+          element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <MainLayout>
+                <RegisterVendorPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        {/* Page for admin/staff */}
+        <Route
+          path={ROUTES.ADMIN_VENDORS}
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'staff']}>
+              <MainLayout>
+                <VendorApprovalPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.ADMIN_CATEGORIES}
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'staff']}>
+              <MainLayout>
+                <CategoryManagementPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.ADMIN_PRODUCTS_APPROVAL}
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'staff']}>
+              <MainLayout>
+                <ProductApprovalPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
         {/* Catch all route - redirect to dashboard */}
         <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
       </Routes>
     </BrowserRouter>
   );
 };
+

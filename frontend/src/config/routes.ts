@@ -1,12 +1,24 @@
 export const ROUTES = {
   // Auth routes
   LOGIN: '/login',
+  REGISTER: '/register',
   
   // Protected routes
   DASHBOARD: '/',
   PROFILE: '/profile',
   SETTINGS: '/settings',
+  PRODUCTS: '/products',
   
+  // FE7 - Vendor Register, Admin Confirm
+  REGISTER_VENDOR: '/register-vendor',
+  ADMIN_VENDORS: '/admin/vendors',
+  ADMIN_CATEGORIES: '/admin/categories',
+  ADMIN_PRODUCTS_APPROVAL: '/admin/products-approval',
+  // FE7 - Vendor Register, Admin Confirm
+
+  // Shopping page chỉ cho customer
+  SHOPPING: '/shopping',
+
   // Fallback
   NOT_FOUND: '/404',
 } as const;

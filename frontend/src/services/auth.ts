@@ -1,68 +1,74 @@
-// import { apiClient } from './api'; // Will be used when implementing real API calls
+/*
+import { apiClient } from './api';
 import { LoginCredentials, AuthResponse, User } from '@/types/auth';
 import Cookies from 'js-cookie';
 
+function decodeJwt<T = any>(token: string): T | null {
+  try {
+    const payload = token.split('.')[1];
+    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+    return JSON.parse(decodeURIComponent(escape(json))) as T;
+  } catch {
+    return null;
+  }
+}
+
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    // Mock login for demo purposes - replace with actual API call
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
-    
-    if (credentials.email === 'admin@example.com' && credentials.password === 'admin123') {
-      const mockResponse: AuthResponse = {
-        user: {
-          id: '1',
-          email: credentials.email,
-          name: 'Admin User',
-          avatar: 'https://via.placeholder.com/40',
-          role: 'admin',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        token: 'mock-jwt-token',
-        refreshToken: 'mock-refresh-token',
-      };
-      
-      // Store tokens
-      Cookies.set('auth_token', mockResponse.token, { expires: 7 });
-      Cookies.set('refresh_token', mockResponse.refreshToken, { expires: 30 });
-      
-      return mockResponse;
-    }
-    
-    throw new Error('Invalid credentials');
+    // Backend returns { token }
+    const res = await apiClient.postRaw<{ token: string }>('/login', credentials);
+    if (!res?.token) throw new Error('Invalid login response');
+
+    Cookies.set('auth_token', res.token, { expires: 7 });
+
+    // Build user from JWT payload
+    const payload = decodeJwt<{ fullName: string; email: string; role: string; id: string }>(res.token);
+    if (!payload?.email) throw new Error('Invalid token payload');
+
+    const user: User = {
+      id: payload.id,
+      email: payload.email,
+      name: payload.fullName || payload.email,
+      role: payload.role?.toLowerCase() === 'admin' ? 'admin' : 'user',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    return {
+      user,
+      token: res.token,
+      refreshToken: '',
+    };
+  },
+
+  async register(input: { fullName: string; email: string; password: string }): Promise<{ success: boolean; message: string }>{
+    const res = await apiClient.postRaw<{ success: boolean; message: string }>('/register', input);
+    return res;
   },
 
   async getCurrentUser(): Promise<User> {
-    // Mock current user - replace with actual API call
     const token = Cookies.get('auth_token');
     if (!token) {
       throw new Error('No authentication token found');
     }
+    const payload = decodeJwt<{ fullName: string; email: string; role: string; id: string }>(token);
+    if (!payload?.email) throw new Error('Invalid token');
 
-    // In a real app, this would be: return apiClient.get<User>('/auth/me');
     return {
-      id: '1',
-      email: 'admin@example.com',
-      name: 'Admin User',
-      avatar: 'https://via.placeholder.com/40',
-      role: 'admin',
+      id: payload.id,
+      email: payload.email,
+      name: payload.fullName || payload.email,
+      role: payload.role?.toLowerCase() === 'admin' ? 'admin' : 'user',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
   },
 
   async refreshToken(): Promise<AuthResponse> {
-    const refreshToken = Cookies.get('refresh_token');
-    if (!refreshToken) {
-      throw new Error('No refresh token found');
-    }
-
-    // In a real app: return apiClient.post<AuthResponse>('/auth/refresh', { refreshToken });
-    return this.getCurrentUser().then(user => ({
-      user,
-      token: 'new-mock-jwt-token',
-      refreshToken: 'new-mock-refresh-token',
-    }));
+    const token = Cookies.get('auth_token');
+    if (!token) throw new Error('No auth token found');
+    const user = await this.getCurrentUser();
+    return { user, token, refreshToken: '' };
   },
 
   logout(): void {
@@ -70,6 +76,97 @@ export const authService = {
     Cookies.remove('refresh_token');
   },
 
+  isAuthenticated(): boolean {
+    return !!Cookies.get('auth_token');
+  },
+};
+*/
+
+import { apiClient } from './api';
+import { LoginCredentials, AuthResponse, User } from '@/types/auth';
+import Cookies from 'js-cookie';
+
+// GIỮ NGUYÊN
+function decodeJwt<T = any>(token: string): T | null {
+  try {
+    const payload = token.split('.')[1];
+    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+    return JSON.parse(decodeURIComponent(escape(json))) as T;
+  } catch {
+    return null;
+  }
+}
+
+// GIỮ NGUYÊN
+export const authService = {
+  // GIỮ NGUYÊN
+  async login(credentials: LoginCredentials): Promise<AuthResponse> {
+    const res = await apiClient.postRaw<{ token: string }>('/login', credentials);
+    if (!res?.token) throw new Error('Invalid login response');
+
+    Cookies.set('auth_token', res.token, { expires: 7 });
+
+    const payload = decodeJwt<{ fullName: string; email: string; role: string; id: string }>(res.token);
+    if (!payload?.email) throw new Error('Invalid token payload');
+
+    const user: User = {
+      id: payload.id,
+      email: payload.email,
+      name: payload.fullName || payload.email,
+      // SỬA ĐỔI: Sửa lại logic gán 'role' để khớp với types mới
+      role: (payload.role?.toLowerCase() as User['role']) || 'customer',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    return {
+      user,
+      token: res.token,
+      refreshToken: '',
+    };
+  },
+
+  // GIỮ NGUYÊN: Hàm register
+  async register(input: { fullName: string; email: string; password: string }): Promise<{ success: boolean; message: string }>{
+    const res = await apiClient.postRaw<{ success: boolean; message: string }>('/register', input);
+    return res;
+  },
+
+  // GIỮ NGUYÊN
+  async getCurrentUser(): Promise<User> {
+    const token = Cookies.get('auth_token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    const payload = decodeJwt<{ fullName: string; email: string; role: string; id: string }>(token);
+    if (!payload?.email) throw new Error('Invalid token');
+
+    return {
+      id: payload.id,
+      email: payload.email,
+      name: payload.fullName || payload.email,
+      // SỬA ĐỔI: Sửa lại logic gán 'role' để khớp với types mới
+      role: (payload.role?.toLowerCase() as User['role']) || 'customer',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  },
+
+  // GIỮ NGUYÊN
+  async refreshToken(): Promise<AuthResponse> {
+    const token = Cookies.get('auth_token');
+    if (!token) throw new Error('No auth token found');
+    const user = await this.getCurrentUser();
+    return { user, token, refreshToken: '' };
+  },
+
+  // GIỮ NGUYÊN
+  logout(): void {
+    Cookies.remove('auth_token');
+    Cookies.remove('refresh_token');
+  },
+
+  // GIỮ NGUYÊN
   isAuthenticated(): boolean {
     return !!Cookies.get('auth_token');
   },
