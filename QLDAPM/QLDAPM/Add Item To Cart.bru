@@ -1,0 +1,20 @@
+meta {
+  name: Add Item To Cart
+  type: http
+  seq: 16
+}
+
+post {
+  url: http://localhost:5000/api/cart/add
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {"productId":"68e8cf0598f4f6a3d972e742",
+  "quantity":"3"}
+}
