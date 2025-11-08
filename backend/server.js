@@ -16,7 +16,8 @@ app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 const auth = require('./middlewares/authMiddleware');
 app.use("/", require("./routes/api/users"));
 app.use("/", auth, require("./routes/api/vendors"));
-app.use("/", auth, require("./routes/api/categories"));
+app.use("/", auth, require("./routes/api/categories"))
+app.use("/", auth, require("./routes/api/cart"))
 const productsRoute = require('./routes/api/products');
 app.use(productsRoute);
 app.listen(PORT, ()=> console.log(`server started on port ${PORT}!`));

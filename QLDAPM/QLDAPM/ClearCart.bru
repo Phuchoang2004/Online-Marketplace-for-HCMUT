@@ -1,11 +1,11 @@
 meta {
-  name: Customer get ProductList
+  name: ClearCart
   type: http
-  seq: 2
+  seq: 19
 }
 
-get {
-  url: http://localhost:5000/api/products
+delete {
+  url: http://localhost:5000/api/cart-clear
   body: none
   auth: none
 }

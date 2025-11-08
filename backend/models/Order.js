@@ -7,7 +7,7 @@ const OrderItemSchema = new mongoose.Schema({
     subtotal: { type: Number, required: true },
     status: {
         type: String,
-        enum: ['PENDING', 'PAID', 'SHIPPED', 'COMPLETED', 'CANCELLED'],
+        enum: ['PENDING', 'SHIPPED', 'COMPLETED', 'CANCELLED'],
         default: 'PENDING'
     }
 }, { _id: false });
@@ -18,7 +18,7 @@ const OrderSchema = new mongoose.Schema({
     totalAmount: { type: Number, required: true },
     status: {
         type: String,
-        enum: ['PENDING', 'PAID', 'SHIPPED', 'COMPLETED', 'CANCELLED'],
+        enum: ['PENDING', 'SHIPPED', 'COMPLETED', 'CANCELLED'],
         default: 'PENDING'
     },
     paymentStatus: {

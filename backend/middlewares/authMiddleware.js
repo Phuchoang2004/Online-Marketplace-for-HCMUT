@@ -6,7 +6,7 @@ const string_decoder = require("node:string_decoder");
 module.exports = function (req, res, next) {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-        return res.status(401).json({"success": false});
+        return res.status(401).json({"success": false, "message": "No token provided"});
     }
     const token = authHeader.split(' ');
 
@@ -25,7 +25,7 @@ module.exports = function (req, res, next) {
         req.user = jwt.verify(token[1], process.env.SECRET_KEY)
         next()
     }catch (err){
-        return res.status(500).json({"error": "Cant decode token"})
+        return res.status(500).json({"error": "Cant decode token", err: err.message})
     }
 }
 
