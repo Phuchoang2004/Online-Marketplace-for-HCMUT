@@ -19,5 +19,6 @@ app.use("/", auth, require("./routes/api/vendors"));
 app.use("/", auth, require("./routes/api/categories"))
 app.use("/", auth, require("./routes/api/cart"))
 const productsRoute = require('./routes/api/products');
+app.use('/api/orders', auth, require('./routes/api/order'));
 app.use(productsRoute);
 app.listen(PORT, ()=> console.log(`server started on port ${PORT}!`));

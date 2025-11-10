@@ -3,7 +3,8 @@ const router = express.Router();
 const Cart = require('../../models/Cart');
 const Product = require('../../models/Product');
 const auth = require('../../middlewares/authMiddleware');
-
+const Order = require('../../models/Order');
+const Vendor = require('../../models/Vendor');
 
 router.get('/api/cart', async (req, res) => {
     try {
@@ -136,6 +137,62 @@ router.delete('/api/cart-clear', async (req, res) => {
         console.error('Error clearing cart:', err);
         res.status(500).json({ error: 'Server error' });
     }
+});
+
+router.post('/api/cart/checkout', auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const cart = await Cart.findOne({ user: userId })
+      .populate({
+        path: 'items.product',
+        select: 'price vendor'
+      });
+
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({ success: false, message: 'Cart is empty' });
+    }
+
+    const orderItems = [];
+    let totalAmount = 0;
+
+    for (const item of cart.items) {
+      const vendorId = item.product.vendor;
+      const subtotal = item.product.price * item.quantity;
+      totalAmount += subtotal;
+
+      orderItems.push({
+        product: item.product._id,
+        vendor: vendorId,
+        quantity: item.quantity,
+        price: item.product.price,
+        subtotal: subtotal
+      });
+    }
+
+    const newOrder = new Order({
+      user: userId,
+      items: orderItems,
+      totalAmount: totalAmount,
+      status: 'PENDING',
+      // paymentStatus: 'PENDING'
+    });
+
+    await newOrder.save();
+
+    cart.items = [];
+    await cart.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Order created successfully',
+      orderId: newOrder._id,
+      totalAmount: newOrder.totalAmount
+    });
+  } catch (err) {
+    console.error('[Checkout Error]', err);
+    res.status(500).json({ success: false, message: 'Server error', error: err.message });
+  }
 });
 
 module.exports = router;

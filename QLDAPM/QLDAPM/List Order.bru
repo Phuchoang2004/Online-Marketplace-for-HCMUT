@@ -1,0 +1,15 @@
+meta {
+  name: List Order
+  type: http
+  seq: 20
+}
+
+get {
+  url: http://localhost:5050/api/orders
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

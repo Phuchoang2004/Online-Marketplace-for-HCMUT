@@ -5,11 +5,11 @@ meta {
 }
 
 post {
-  url: http://localhost:5000/api/products/68e8cf0598f4f6a3d972e742/approve
+  url: http://localhost:5050/api/products/68e8cf0598f4f6a3d972e742/approve
   body: none
-  auth: bearer
+  auth: none
 }
 
-auth:bearer {
-  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmdWxsTmFtZSI6Ik5ndXllbiBIb25nIFBodWMiLCJlbWFpbCI6ImFiYzFAMTIzLmNvbSIsInJvbGUiOiJTVEFGRiIsInBlcm1pc3Npb24iOltdLCJpZCI6IjY4ZThjZTZkOThmNGY2YTNkOTcyZTczMSIsImlhdCI6MTc2MDA4NzcyMiwiZXhwIjoxNzYwMDg4NjIyfQ.KKQGIvHUsXCZAapRT1G1PdzDS-SguO3szM0r6LZPkrc
+headers {
+  Authorization: Bearer {{accessToken}}
 }

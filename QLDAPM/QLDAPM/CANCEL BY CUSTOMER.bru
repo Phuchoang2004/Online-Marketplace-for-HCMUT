@@ -1,0 +1,25 @@
+meta {
+  name: CANCEL BY CUSTOMER
+  type: http
+  seq: 23
+}
+
+put {
+  url: http://localhost:5050/api/orders/69119807835fcfefd280a922/process
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+  Content-Type: application/json
+}
+
+body:json {
+  {}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
