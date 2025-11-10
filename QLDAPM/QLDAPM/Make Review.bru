@@ -1,0 +1,26 @@
+meta {
+  name: Make Review
+  type: http
+  seq: 26
+}
+
+post {
+  url: http://localhost:5000/api/product/review
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {"productId":"691196dd835fcfefd280a8f9",
+    "rating" : 5,
+  "comment":"good product"}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

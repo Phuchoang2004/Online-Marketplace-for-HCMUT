@@ -3,7 +3,8 @@ const router = express.Router();
 const Cart = require('../../models/Cart');
 const Product = require('../../models/Product');
 const auth = require('../../middlewares/authMiddleware');
-
+const Order = require('../../models/Order');
+const Vendor = require('../../models/Vendor');
 
 router.get('/api/cart', async (req, res) => {
     try {
@@ -138,4 +139,75 @@ router.delete('/api/cart-clear', async (req, res) => {
     }
 });
 
+router.post('/api/cart/checkout', auth, async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Load user's cart
+        const cart = await Cart.findOne({ user: userId })
+            .populate({
+                path: 'items.product',
+                select: 'price vendor'
+            });
+
+        if (!cart || cart.items.length === 0) {
+            return res.status(400).json({ success: false, message: 'Cart is empty' });
+        }
+
+        const vendorGroups = {};
+        for (const item of cart.items) {
+            const vendorId = item.product.vendor.toString();
+            const subtotal = item.product.price * item.quantity;
+
+            if (!vendorGroups[vendorId]) {
+                vendorGroups[vendorId] = {
+                    vendor: vendorId,
+                    items: [],
+                    totalAmount: 0
+                };
+            }
+
+            vendorGroups[vendorId].items.push({
+                product: item.product._id,
+                vendor: vendorId,
+                quantity: item.quantity,
+                price: item.product.price,
+                subtotal
+            });
+
+            vendorGroups[vendorId].totalAmount += subtotal;
+        }
+
+        const createdOrders = [];
+        for (const vendorId in vendorGroups) {
+            const vendorData = vendorGroups[vendorId];
+
+            const newOrder = new Order({
+                user: userId,
+                items: vendorData.items,
+                totalAmount: vendorData.totalAmount,
+                status: 'PENDING'
+            });
+
+            await newOrder.save();
+            createdOrders.push(newOrder);
+        }
+
+        cart.items = [];
+        await cart.save();
+
+        res.status(201).json({
+            success: true,
+            message: 'Orders created successfully',
+            orders: createdOrders.map(o => ({
+                orderId: o._id,
+                totalAmount: o.totalAmount,
+                vendorCount: createdOrders.length
+            }))
+        });
+    } catch (err) {
+        console.error('[Checkout Error]', err);
+        res.status(500).json({ success: false, message: 'Server error', error: err.message });
+    }
+});
 module.exports = router;

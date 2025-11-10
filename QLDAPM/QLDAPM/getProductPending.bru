@@ -10,6 +10,16 @@ get {
   auth: bearer
 }
 
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{accessToken}}
+}
+
 auth:bearer {
   token: 
+}
+
+tests {
+  const response = res.getBody()
+  bru.setEnvVar('accessToken', response.token)
 }

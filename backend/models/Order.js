@@ -21,12 +21,12 @@ const OrderSchema = new mongoose.Schema({
         enum: ['PENDING', 'SHIPPED', 'COMPLETED', 'CANCELLED'],
         default: 'PENDING'
     },
-    paymentStatus: {
-        type: String,
-        enum: ['PENDING', 'SUCCESS', 'FAILED'],
-        default: 'PENDING'
-    },
-    paymentId: { type: String } // Stripe payment reference
+    // paymentStatus: {
+    //     type: String,
+    //     enum: ['PENDING', 'SUCCESS', 'FAILED'],
+    //     default: 'PENDING'
+    // },
+    // paymentId: { type: String } // Stripe payment reference
 
 }, { timestamps: true });
 

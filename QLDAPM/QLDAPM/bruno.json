@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "name": "QLDAPM",
+  "name": "qldapm1",
   "type": "collection",
   "ignore": [
     "node_modules",

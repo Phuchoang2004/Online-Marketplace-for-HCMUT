@@ -1,0 +1,24 @@
+meta {
+  name: Customer Complete Order
+  type: http
+  seq: 25
+}
+
+put {
+  url: http://localhost:5000/api/orders/6912105b4db763f9c7a55a37/process
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {"action": "complete"}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
