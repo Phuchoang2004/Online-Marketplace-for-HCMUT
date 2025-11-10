@@ -5,7 +5,7 @@ meta {
 }
 
 put {
-  url: http://localhost:5050/api/orders/69119807835fcfefd280a922/process
+  url: http://localhost:5000/api/orders/6912105b4db763f9c7a55a37/process
   body: json
   auth: inherit
 }
@@ -15,7 +15,7 @@ headers {
 }
 
 body:json {
-  {}
+  {"action": "complete"}
 }
 
 settings {

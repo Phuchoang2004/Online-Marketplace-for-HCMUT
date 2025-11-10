@@ -18,6 +18,7 @@ app.use("/", require("./routes/api/users"));
 app.use("/", auth, require("./routes/api/vendors"));
 app.use("/", auth, require("./routes/api/categories"))
 app.use("/", auth, require("./routes/api/cart"))
+app.use("/", auth, require("./routes/api/review"))
 const productsRoute = require('./routes/api/products');
 app.use('/api/orders', auth, require('./routes/api/order'));
 app.use(productsRoute);

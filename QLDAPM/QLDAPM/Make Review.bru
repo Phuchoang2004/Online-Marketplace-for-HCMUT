@@ -1,11 +1,11 @@
 meta {
-  name: Checkout
+  name: Make Review
   type: http
-  seq: 19
+  seq: 26
 }
 
 post {
-  url: http://localhost:5000/api/cart/checkout
+  url: http://localhost:5000/api/product/review
   body: json
   auth: inherit
 }
@@ -15,7 +15,9 @@ headers {
 }
 
 body:json {
-  {}
+  {"productId":"691196dd835fcfefd280a8f9",
+    "rating" : 5,
+  "comment":"good product"}
 }
 
 settings {

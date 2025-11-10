@@ -7,14 +7,20 @@ router.get('/', auth, async (req, res) => {
   try {
     const user = req.user;
     let orders;
+    const filter = {};
+    const { type } = req.query;
 
     if (user.role === 'VENDOR') {
-      orders = await Order.find({ 'items.vendor': user.vendorProfile })
+        filter['items.vendor'] = user.vendorProfile;
+        if (type) filter['items.status'] = type.toUpperCase();
+      orders = await Order.find(filter)
         .populate('user', 'fullName email')
         .populate('items.product', 'name price')
         .sort({ createdAt: -1 });
     } else {
-      orders = await Order.find({ user: user.id })
+        filter.user = user.id;
+        if (type) filter.status = type.toUpperCase();
+      orders = await Order.find(filter)
         .populate('items.product', 'name price')
         .sort({ createdAt: -1 });
     }
@@ -56,7 +62,7 @@ router.get('/:id', auth, async (req, res) => {
 
 router.put('/:id/process', auth, async (req, res) => {
   try {
-    const { action } = req.body;
+    const { action } = req.body
     const user = req.user;
     const order = await Order.findById(req.params.id);
 
@@ -87,10 +93,13 @@ router.put('/:id/process', auth, async (req, res) => {
     }
 
     else if (user.role === 'CUSTOMER') {
-      if (action === 'CANCEL' && order.status === 'PENDING') {
+        if (!action){
+            return res.status(400).json({ success: false, message: 'Action is required' });
+        }
+      if (action.toUpperCase() === 'CANCEL' && order.status === 'PENDING') {
         order.status = 'CANCELLED';
         order.items.forEach(i => (i.status = 'CANCELLED'));
-      } else if (action === 'COMPLETE' && order.status === 'SHIPPED') {
+      } else if (action.toUpperCase() === 'COMPLETE' && order.status === 'SHIPPED') {
         order.status = 'COMPLETED';
         order.items.forEach(i => (i.status = 'COMPLETED'));
       } else {
