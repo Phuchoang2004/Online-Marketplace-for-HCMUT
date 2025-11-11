@@ -18,7 +18,7 @@ export const Footer: React.FC = () => {
       }}
     >
       <Text type="secondary">
-        TypeScript Frontend Template ©{currentYear} Created with ❤️ using React, TypeScript & Ant Design
+        HCMUT Online Marketplace ©{currentYear} Created with ❤️ using React, TypeScript & Ant Design
       </Text>
     </AntFooter>
   );

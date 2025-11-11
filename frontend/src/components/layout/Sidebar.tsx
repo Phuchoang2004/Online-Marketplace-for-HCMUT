@@ -36,13 +36,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
       label: 'Dashboard',
       onClick: () => navigate(ROUTES.DASHBOARD),
     },
-    {
+  );
+
+  // Chỉ hiện Products cho role vendor
+  if (user?.role !== 'admin' && user?.role !== 'staff' && user?.role !== 'customer') {
+    menuItems.push({
       key: ROUTES.PRODUCTS,
       icon: <ShopOutlined />,
       label: 'Products',
       onClick: () => navigate(ROUTES.PRODUCTS),
-    }
-  );
+    });
+  };
 
   // Handle role customer
   if (user?.role === 'customer') {
@@ -124,7 +128,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
           color: token.colorPrimary,
         }}
       >
-        {collapsed ? 'T' : 'Template'}
+        {collapsed ? 'H' : 'HCMUT - OM'}
       </div>
 
       <Menu
