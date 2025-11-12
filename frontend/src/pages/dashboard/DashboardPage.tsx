@@ -12,6 +12,9 @@ import {
   ArrowRightOutlined,
   ShopOutlined,
   AuditOutlined,
+  SafetyOutlined,
+  TeamOutlined,
+  ThunderboltOutlined,
 } from '@ant-design/icons';
 import { Line } from '@ant-design/charts';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,11 +25,9 @@ const { Title, Paragraph } = Typography;
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
 
-  // Render vendor dashboard if user is a vendor
   if (user?.role === 'vendor') {
     return <VendorDashboard />;
   }
-  // === Dữ liệu mẫu cho các biểu đồ ===
   const revenueData = [
     { date: '2025-11-01', value: 300 },
     { date: '2025-11-02', value: 450 },
@@ -50,14 +51,23 @@ export const DashboardPage: React.FC = () => {
     tooltip: false,
   };
 
-  // Màu chủ đạo xanh dương
   const primaryBlue = '#1890ff';
   const lightBlue = '#e6f7ff';
   const darkBlue = '#001529';
 
+  const iconCircleStyle: React.CSSProperties = {
+    width: 64,
+    height: 64,
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: '16px',
+    margin: '0 auto 16px',
+  };
+
   return (
     <div>
-      {/* PHẦN 1: BANNER */}
       <div
         style={{
           background: `linear-gradient(45deg, ${primaryBlue} 0%, #40a9ff 100%)`,
@@ -95,7 +105,6 @@ export const DashboardPage: React.FC = () => {
         </Row>
       </div>
 
-      {/* PHẦN 2: THỐNG KÊ NỔI BẬT */}
       <Row gutter={[24, 24]} style={{ marginBottom: '24px' }}>
         <Col xs={24} sm={12} lg={6}>
           <Card bordered={false} hoverable style={{ textAlign: 'center', padding: '15px 0' }}>
@@ -146,11 +155,9 @@ export const DashboardPage: React.FC = () => {
 
       <Divider />
 
-      {/* PHẦN 3: BIỂU ĐỒ VÀ CÁC THÔNG TIN KHÁC */}
       <Title level={3} style={{ marginBottom: '24px', textAlign: 'center', color: darkBlue }}>
         Application Overview & Health
       </Title>
-
       <Row gutter={[24, 24]} style={{ marginBottom: '24px' }}>
         <Col xs={24} lg={16}>
           <Card title={<Space><FundOutlined style={{ color: primaryBlue }} /> Revenue Trend (Last 7 Days)</Space>} bordered={false}>
@@ -188,7 +195,6 @@ export const DashboardPage: React.FC = () => {
           </Card>
         </Col>
       </Row>
-
       <Row gutter={[24, 24]}>
         <Col xs={24} lg={12}>
           <Card title={<Space><HistoryOutlined style={{ color: primaryBlue }} /> Recent Activity</Space>} bordered={false} style={{ height: '100%' }}>
@@ -241,10 +247,47 @@ export const DashboardPage: React.FC = () => {
 
       <Divider />
 
-      {/* PHẦN 4: Ready to Start Trading? */}
+      <div style={{ padding: '40px 0', textAlign: 'center' }}>
+        <Title level={2} style={{ color: darkBlue, marginBottom: '16px' }}>
+          Why Choose Us?
+        </Title>
+        <Paragraph style={{ fontSize: '16px', color: '#555', marginBottom: '40px' }}>
+          Built specifically for the HCMUT community with safety and convenience in mind
+        </Paragraph>
+        <Row gutter={[32, 32]}>
+          <Col xs={24} md={8}>
+            <div style={{ ...iconCircleStyle, backgroundColor: '#e6f7ff' }}>
+              <SafetyOutlined style={{ fontSize: '32px', color: '#1890ff' }} />
+            </div>
+            <Title level={4}>Verified Students Only</Title>
+            <Paragraph>
+              All sellers and buyers are verified HCMUT students, ensuring a trusted community
+            </Paragraph>
+          </Col>
+          <Col xs={24} md={8}>
+            <div style={{ ...iconCircleStyle, backgroundColor: '#f6ffed' }}>
+              <TeamOutlined style={{ fontSize: '32px', color: '#52c41a' }} />
+            </div>
+            <Title level={4}>Campus Community</Title>
+            <Paragraph>
+              Meet face-to-face on campus for safe exchanges and build connections
+            </Paragraph>
+          </Col>
+          <Col xs={24} md={8}>
+            <div style={{ ...iconCircleStyle, backgroundColor: '#fffbeb' }}>
+              <ThunderboltOutlined style={{ fontSize: '32px', color: '#faad14' }} />
+            </div>
+            <Title level={4}>Quick & Easy</Title>
+            <Paragraph>
+              List items in minutes and connect with buyers instantly through our platform
+            </Paragraph>
+          </Col>
+        </Row>
+      </div>
+
       <div
         style={{
-          background: primaryBlue, // Màu xanh dương
+          background: primaryBlue,
           color: '#fff',
           padding: '60px 40px',
           borderRadius: '8px',
@@ -258,22 +301,6 @@ export const DashboardPage: React.FC = () => {
         <Paragraph style={{ color: '#e6f7ff', fontSize: '16px', marginBottom: '30px' }}>
           Join hundreds of HCMUT students already buying and selling on our platform
         </Paragraph>
-        <Space size="large">
-          <Button
-            type="primary"
-            size="large"
-            style={{ background: '#fff', color: primaryBlue, borderColor: '#fff' }}
-          >
-            Create Account
-          </Button>
-          <Button
-            type="default"
-            size="large"
-            style={{ background: '#fff', color: primaryBlue, borderColor: '#fff' }}
-          >
-            Sign In
-          </Button>
-        </Space>
       </div>
     </div>
   );
