@@ -15,11 +15,17 @@ import {
 } from '@ant-design/icons';
 import { Line } from '@ant-design/charts';
 import { useAuth } from '@/hooks/useAuth';
+import { VendorDashboard } from './VendorDashboard';
 
 const { Title, Paragraph } = Typography;
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
+
+  // Render vendor dashboard if user is a vendor
+  if (user?.role === 'vendor') {
+    return <VendorDashboard />;
+  }
   // === Dữ liệu mẫu cho các biểu đồ ===
   const revenueData = [
     { date: '2025-11-01', value: 300 },
