@@ -11,18 +11,15 @@ import { ProductsPage } from '@/pages/products/ProductsPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 import ShoppingPage from '@/pages/products/shopping';
 
-// FE7 - Vendor Register, Admin Confirm
-import { useAuth } from '@/hooks/useAuth'; // Cần hook này để lấy role
+import { useAuth } from '@/hooks/useAuth';
 import { RegisterVendorPage } from '@/pages/vendor/RegisterVendorPage';
 import { VendorApprovalPage } from '@/pages/admin/VendorApprovalPage';
 import { CategoryManagementPage } from '@/pages/admin/CategoryManagementPage';
 import { ProductApprovalPage } from '@/pages/admin/ProductApprovalPage';
-// FE7 - Vendor Register, Admin Confirm
+import { CartPage } from '@/pages/cart/cartpage';
 
 export const AppRouter: React.FC = () => {
-  // FE7 - Vendor Register, Admin Confirm
   useAuth();
-  // FE7 - Vendor Register, Admin Confirm
   return (
     <BrowserRouter>
       <Routes>
@@ -81,8 +78,18 @@ export const AppRouter: React.FC = () => {
             </ProtectedRoute>
           }
         />
-        
-        {/* Page for customer */}
+
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <MainLayout>
+                <CartPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path={ROUTES.REGISTER_VENDOR}
           element={
@@ -93,7 +100,7 @@ export const AppRouter: React.FC = () => {
             </ProtectedRoute>
           }
         />
-        {/* Page for admin/staff */}
+
         <Route
           path={ROUTES.ADMIN_VENDORS}
           element={
@@ -124,7 +131,7 @@ export const AppRouter: React.FC = () => {
             </ProtectedRoute>
           }
         />
-        {/* Catch all route - redirect to dashboard */}
+
         <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
       </Routes>
     </BrowserRouter>

@@ -9,6 +9,7 @@ import {
   SettingOutlined,
   SunOutlined,
   MoonOutlined,
+  ShoppingCartOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '@/hooks/useAuth';
 import { useApp } from '@/contexts/AppContext';
@@ -76,6 +77,15 @@ export const Header: React.FC<HeaderProps> = ({ collapsed, onToggle }) => {
       </div>
 
       <Space>
+        {user?.role === 'customer' && (
+          <Button
+            type="text"
+            shape="circle"
+            icon={<ShoppingCartOutlined style={{ fontSize: '18px' }} />}
+            onClick={() => navigate('/cart')}
+          />
+        )}
+
         <Space>
           <SunOutlined />
           <Switch

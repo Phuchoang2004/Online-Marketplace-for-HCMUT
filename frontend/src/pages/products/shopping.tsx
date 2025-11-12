@@ -1,12 +1,27 @@
 import React, { useMemo, useState } from 'react';
-import { Button, Card, Input, Tag, Rate, Spin } from 'antd';
-import { SearchOutlined, AppstoreOutlined, SmileOutlined, HomeOutlined, HeartOutlined, GiftOutlined, SkinOutlined } from '@ant-design/icons';
-import { useQuery } from '@tanstack/react-query';
+import { Button, Card, Input, Tag, Rate, Spin, Typography } from 'antd';
+import {
+  SearchOutlined,
+  AppstoreOutlined,
+  SmileOutlined,
+  HomeOutlined,
+  HeartOutlined,
+  GiftOutlined,
+  SkinOutlined,
+  ShoppingCartOutlined,
+} from '@ant-design/icons';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productService } from '@/services/products';
 import { categoryService } from '@/services/categories';
+import { cartService } from '@/services/cart';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/useToast';
 import { useNavigate } from 'react-router-dom';
-import logo from "../../components/logo.png";
+import logo from '../../components/logo.png';
+import { Product } from '@/types/product';
+
+const { Text } = Typography;
+
 const iconMap: Record<string, JSX.Element> = {
   Electronics: <AppstoreOutlined style={{ fontSize: 28, color: '#5A54FF' }} />,
   Fashion: <SkinOutlined style={{ fontSize: 28, color: '#EA4C89' }} />,
@@ -21,6 +36,19 @@ const ShoppingPage: React.FC = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
 
+  const queryClient = useQueryClient();
+  const { showSuccessMessage, showErrorMessage } = useToast();
+
+  const addMutation = useMutation({
+    mutationFn: (data: { productId: string; quantity: number }) =>
+      cartService.addToCart(data.productId, data.quantity),
+    onSuccess: () => {
+      showSuccessMessage('Product added to cart!');
+      queryClient.invalidateQueries({ queryKey: ['cart'] }); // Cập nhật lại cart
+    },
+    onError: showErrorMessage,
+  });
+
   React.useEffect(() => {
     if (!user || user.role !== 'customer') {
       navigate('/');
@@ -33,21 +61,19 @@ const ShoppingPage: React.FC = () => {
   });
 
   const { data, isLoading } = useQuery({
-    queryKey: ['products-shopping'],
-    queryFn: () => productService.list({ page: 1, limit: 50, sortBy: 'newest' }),
+    queryKey: ['products-shopping', { keyword: search }],
+    queryFn: () => productService.list({ 
+      page: 1, 
+      limit: 50, 
+      sortBy: 'newest',
+      keyword: search
+    }),
     staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: true,
   });
 
   const products = useMemo(() => {
-    let items: any[] = data?.items || [];
-    // Chỉ hiển thị sản phẩm đã được duyệt
-    items = items.filter((p: any) => p.approvalStatus === 'APPROVED');
-    if (search) {
-      items = items.filter((prd: any) => prd.name?.toLowerCase().includes(search.toLowerCase()));
-    }
-    return items as any[];
-  }, [search, data]);
+    return (data?.items || []) as Product[]; 
+  }, [data]);
 
   const featuredProducts = useMemo(() => (
     (products as any[]).slice(0, 4).map((p: any, idx: number) => ({
@@ -72,7 +98,6 @@ const ShoppingPage: React.FC = () => {
 
   return (
     <div style={{background: '#F5F6FA', minHeight: '80vh',paddingTop: 20, paddingBottom: 32}}>
-      {/* Search Bar */}
       <div style={{
         background: '#fff', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.03)', padding: 16, maxWidth: 600,
         margin: '32px auto 0', display: 'flex', alignItems: 'center'
@@ -88,7 +113,6 @@ const ShoppingPage: React.FC = () => {
       </div>
       {/* Main content */}
       <div style={{ maxWidth: 1250, margin: '0 auto', padding: '0 16px' }}>
-        {/* Banner */}
         <div style={{
           background: 'linear-gradient(90deg, #5A54FF 0%, #24C6DC 100%)',
           borderRadius: 12, padding: 40, display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '32px 0', minHeight: 220, color: '#fff', overflow: 'hidden',
@@ -106,7 +130,6 @@ const ShoppingPage: React.FC = () => {
           </div>
           <img src={logo} alt="flash-sale-cart" style={{ height: 270, width: 370 }} />
         </div>
-        {/* Category icons */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: 32, margin: '32px 0', flexWrap: 'wrap' }}>
           {categories.slice(0, 6).map((cat: any) => (
             <div key={cat.id} style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
@@ -117,6 +140,7 @@ const ShoppingPage: React.FC = () => {
             </div>
           ))}
         </div>
+
         {/* Featured Products */}
         <div style={{ margin: '32px 0' }}>
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -127,30 +151,41 @@ const ShoppingPage: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}><Spin size="large"/></div>
           ) : (
             <div style={{display: 'flex', gap: 24, flexWrap: 'wrap'}}>
-              {(featuredProducts as any[]).slice(0, 4).map((prod: any) => (
+              {(featuredProducts as any[]).slice(0, 4).map((prod: Product) => ( // Sửa kiểu 'any' thành 'Product'
                 <Card
                   key={prod.id}
                   style={{maxWidth: 250, width: '100%' , borderRadius: 14, boxShadow: '0 2px 12px #e7e7f5', position: 'relative'}}
                   cover={<img alt={prod.name} src={prod.images?.[0]?.url || ''} style={{ height: 130, objectFit: 'cover', borderTopLeftRadius: 14, borderTopRightRadius: 14 }} />}
                 >
                   <div style={{position: 'absolute', left: 16, top: 8}}>
-                    {prod.badge && (
-                      <Tag color={prod.badgeColor || 'blue'}>{prod.badge}</Tag>
+                    {(prod as any).badge && (
+                      <Tag color={(prod as any).badgeColor || 'blue'}>{(prod as any).badge}</Tag>
                     )}
                   </div>
                   <div style={{height: 40, fontWeight: 600}}>{prod.name}</div>
-                  <Rate allowHalf value={prod.rating || 5} disabled style={{ fontSize: 16 }} />
-                  <span style={{color: '#999', marginLeft: 4}}>({prod.ratingCount || 0} reviews)</span>
+                  <Rate allowHalf value={(prod as any).rating || 5} disabled style={{ fontSize: 16 }} />
+                  <span style={{color: '#999', marginLeft: 4}}>({(prod as any).ratingCount || 0} reviews)</span>
                   <div style={{ fontSize: 20, fontWeight: 700, marginTop: 8 }}>
                     ${prod.price.toLocaleString()}
-                    {prod.oldPrice && (
+                    {(prod as any).oldPrice && (
                       <span style={{ marginLeft: 8, fontWeight: 400, color: '#bbb', textDecoration: 'line-through', fontSize: 15 }}>
-                        ${prod.oldPrice.toLocaleString()}
+                        ${(prod as any).oldPrice.toLocaleString()}
                       </span>
                     )}
                   </div>
-                  <Button type="primary" block style={{ marginTop: 16, background: '#5732E0' }}>
-                    Add to Cart
+                  {/* SỬA NÚT ADD TO CART */}
+                  <Button 
+                    type="primary" 
+                    block 
+                    style={{ marginTop: 16, background: '#5732E0' }}
+                    icon={<ShoppingCartOutlined />}
+                    onClick={() => {
+                      addMutation.mutate({ productId: prod.id, quantity: 1 });
+                    }}
+                    loading={addMutation.isPending && addMutation.variables?.productId === prod.id}
+                    disabled={prod.stock === 0}
+                  >
+                    {prod.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
                   </Button>
                 </Card>
               ))}
@@ -160,6 +195,7 @@ const ShoppingPage: React.FC = () => {
             </div>
           )}
         </div>
+        
         {/* Best Deals */}
         <div style={{margin: '32px 0'}}>
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -170,24 +206,35 @@ const ShoppingPage: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}><Spin size="large"/></div>
           ) : (
             <div style={{display: 'flex', gap: 20, flexWrap: 'wrap'}}>
-              {(bestDeals as any[]).slice(0, 6).map((prod: any) => (
+              {(bestDeals as any[]).slice(0, 6).map((prod: Product) => (
                 <Card
                   key={prod.id}
                   style={{ width: 180, borderRadius: 10, boxShadow: '0 2px 8px #ece9f4', position: 'relative' }}
                   cover={<img alt={prod.name} src={prod.images?.[0]?.url || ''} style={{ height: 90, objectFit: 'cover', borderTopLeftRadius: 10, borderTopRightRadius: 10 }} />}
                 >
                   <Tag color="red" style={{ position: 'absolute', left: 10, top: 8, fontWeight: 600, fontSize: 15, borderRadius: 6 }}>
-                    -{prod.discountPercent || 30}%
+                    -{(prod as any).discountPercent || 30}%
                   </Tag>
                   <div style={{ fontWeight: 600, marginBottom: 4 }}>{prod.name}</div>
                   <div style={{ fontSize: 18, fontWeight: 700 }}>${prod.price.toLocaleString()}</div>
-                  {prod.oldPrice && (
+                  {(prod as any).oldPrice && (
                     <span style={{ marginLeft: 0, fontWeight: 400, color: '#bbb', textDecoration: 'line-through', fontSize: 13 }}>
-                      ${prod.oldPrice.toLocaleString()}
+                      ${(prod as any).oldPrice.toLocaleString()}
                     </span>
                   )}
-                  <Button type="primary" block style={{ marginTop: 8, background: '#5732E0' }}>
-                    Add to Cart
+                  {/* SỬA NÚT ADD TO CART */}
+                  <Button 
+                    type="primary" 
+                    block 
+                    style={{ marginTop: 8, background: '#5732E0' }}
+                    icon={<ShoppingCartOutlined />}
+                    onClick={() => {
+                      addMutation.mutate({ productId: prod.id, quantity: 1 });
+                    }}
+                    loading={addMutation.isPending && addMutation.variables?.productId === prod.id}
+                    disabled={prod.stock === 0}
+                  >
+                    {prod.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
                   </Button>
                 </Card>
               ))}
