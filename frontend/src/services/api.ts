@@ -58,8 +58,12 @@ class ApiClient {
 
         const appError = handleApiError(error);
         if (appError.statusCode === 401) {
-          Cookies.remove('auth_token');
-          window.location.href = '/login';
+          const authHeader = error?.config?.headers?.Authorization;
+          if (authHeader) {
+            Cookies.remove('auth_token');
+            Cookies.remove('refresh_token');
+            window.location.href = '/login';
+          }
         }
 
         return Promise.reject(appError);

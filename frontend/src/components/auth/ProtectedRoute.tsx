@@ -82,9 +82,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     const hasPermission = user?.role && allowedRoles.includes(user.role);
 
     if (!hasPermission) {
-      // Nếu không có quyền, điều hướng về trang Dashboard (hoặc trang 403)
-      // Người dùng đã đăng nhập, nhưng không có quyền truy cập trang này.
-      return <Navigate to={ROUTES.DASHBOARD} replace />;
+      // Nếu không có quyền, điều hướng về trang Shopping (trang chủ)
+      // Người dùng đã đăng nhập nhưng không đủ quyền cho trang này.
+      return <Navigate to={ROUTES.HOME} replace />;
     }
   }
   // -------------------------------------------

@@ -2,6 +2,8 @@ import React from 'react';
 import { Card, Row, Col, Avatar, Typography, Descriptions, Button, Space, Divider } from 'antd';
 import { UserOutlined, EditOutlined, MailOutlined } from '@ant-design/icons';
 import { useAuth } from '@/hooks/useAuth';
+import { ShoppingLayout } from '@/components/layout/ShoppingLayout';
+import { ManagementLayout } from '@/components/layout/MainLayout';
 
 const { Title, Paragraph } = Typography;
 
@@ -12,7 +14,9 @@ export const ProfilePage: React.FC = () => {
     return null;
   }
 
-  return (
+  const isCustomer = user.role === 'customer';
+
+  const content = (
     <div>
       <Title level={2}>Profile</Title>
       <Paragraph>Manage your account information and preferences.</Paragraph>
@@ -60,7 +64,7 @@ export const ProfilePage: React.FC = () => {
                 {user.id}
               </Descriptions.Item>
               <Descriptions.Item label="Role">
-                <span style={{ 
+                <span style={{
                   textTransform: 'capitalize',
                   padding: '2px 8px',
                   backgroundColor: user.role === 'admin' ? '#e6f7ff' : '#f6ffed',
@@ -96,7 +100,7 @@ export const ProfilePage: React.FC = () => {
               your personal information, change your password, manage notification preferences,
               and configure two-factor authentication.
             </Paragraph>
-            
+
             <Space wrap>
               <Button type="primary">Update Information</Button>
               <Button>Change Password</Button>
@@ -108,4 +112,11 @@ export const ProfilePage: React.FC = () => {
       </Row>
     </div>
   );
+
+  if (isCustomer) {
+    return <ShoppingLayout>{content}</ShoppingLayout>;
+  }
+  else {
+    return <ManagementLayout>{content}</ManagementLayout>;
+  }
 };

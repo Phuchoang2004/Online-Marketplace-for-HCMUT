@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { authService } from '@/services/auth';
 import { LoginCredentials } from '@/types/auth';
 import { useToast } from '@/hooks/useToast';
+import { ROUTES } from '@/config/routes';
 
 export const useAuth = () => {
   const queryClient = useQueryClient();
@@ -34,14 +35,18 @@ export const useAuth = () => {
 
   // Logout mutation
   const logoutMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async (options?: { redirectToHome?: boolean; redirectToLogin?: boolean }) => {
       authService.logout();
-      return Promise.resolve();
+      return options;
     },
-    onSuccess: () => {
+    onSuccess: (options) => {
       queryClient.clear();
       showSuccessMessage('Logged out successfully');
-      window.location.href = '/login';
+      if (options?.redirectToLogin) {
+        window.location.href = ROUTES.LOGIN;
+        return;
+      }
+      window.location.href = options?.redirectToHome === false ? ROUTES.LOGIN : ROUTES.HOME;
     },
   });
 
