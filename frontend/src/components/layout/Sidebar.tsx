@@ -25,9 +25,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { token } = theme.useToken();
-  const { user } = useAuth(); // Lấy thông tin user
+  const { user } = useAuth();
   
-  // Handle theo role của user
   const menuItems: MenuProps['items'] = [];
   menuItems.push(
     {
@@ -36,15 +35,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
       label: 'Dashboard',
       onClick: () => navigate(ROUTES.DASHBOARD),
     },
-    {
+  );
+
+  if (user?.role !== 'admin' && user?.role !== 'staff' && user?.role !== 'customer') {
+    menuItems.push({
       key: ROUTES.PRODUCTS,
       icon: <ShopOutlined />,
       label: 'Products',
       onClick: () => navigate(ROUTES.PRODUCTS),
-    }
-  );
+    });
+  };
 
-  // Handle role customer
   if (user?.role === 'customer') {
     menuItems.push({
       key: ROUTES.SHOPPING,
@@ -60,7 +61,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     });
   }
 
-  // Handle role admin/staff
   if (user?.role === 'admin' || user?.role === 'staff') {
     menuItems.push(
       {
@@ -124,7 +124,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
           color: token.colorPrimary,
         }}
       >
-        {collapsed ? 'T' : 'Template'}
+        {collapsed ? 'H' : 'HCMUT - OM'}
       </div>
 
       <Menu

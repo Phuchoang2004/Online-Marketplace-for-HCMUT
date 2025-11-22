@@ -7,11 +7,11 @@ import { useApp } from '@/contexts/AppContext';
 
 const { Content } = Layout;
 
-interface MainLayoutProps {
+interface ManagementLayoutProps {
   children: React.ReactNode;
 }
 
-export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+export const ManagementLayout: React.FC<ManagementLayoutProps> = ({ children }) => {
   const { sidebarCollapsed, toggleSidebar } = useApp();
   const { token } = theme.useToken();
 
@@ -26,7 +26,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             padding: '24px',
             background: token.colorBgContainer,
             borderRadius: token.borderRadius,
-            minHeight: 'calc(100vh - 112px - 48px)', // Adjust for header and footer
+            minHeight: 'calc(100vh - 112px - 48px)',
           }}
         >
           {children}
@@ -36,3 +36,5 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     </Layout>
   );
 };
+
+export { ManagementLayout as MainLayout };

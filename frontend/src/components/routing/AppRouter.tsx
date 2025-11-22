@@ -5,39 +5,38 @@ import { DashboardPage } from '@/pages/dashboard/DashboardPage';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
 import { SettingsPage } from '@/pages/settings/SettingsPage';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { MainLayout } from '@/components/layout/MainLayout';
+import { ManagementLayout } from '@/components/layout/MainLayout';
 import { ROUTES } from '@/config/routes';
 import { ProductsPage } from '@/pages/products/ProductsPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 import ShoppingPage from '@/pages/products/shopping';
 
-// FE7 - Vendor Register, Admin Confirm
-import { useAuth } from '@/hooks/useAuth'; // Cần hook này để lấy role
+import { useAuth } from '@/hooks/useAuth';
 import { RegisterVendorPage } from '@/pages/vendor/RegisterVendorPage';
 import { VendorApprovalPage } from '@/pages/admin/VendorApprovalPage';
 import { CategoryManagementPage } from '@/pages/admin/CategoryManagementPage';
 import { ProductApprovalPage } from '@/pages/admin/ProductApprovalPage';
-// FE7 - Vendor Register, Admin Confirm
+import { CartPage } from '@/pages/cart/cartpage';
 
 export const AppRouter: React.FC = () => {
-  // FE7 - Vendor Register, Admin Confirm
   useAuth();
-  // FE7 - Vendor Register, Admin Confirm
   return (
     <BrowserRouter>
       <Routes>
         {/* Public routes */}
+        <Route path={ROUTES.HOME} element={<ShoppingPage />} />
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
         <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
+        <Route path={ROUTES.SHOPPING} element={<ShoppingPage />} />
 
         {/* Protected routes with layout */}
         <Route
           path={ROUTES.DASHBOARD}
           element={
             <ProtectedRoute>
-              <MainLayout>
+              <ManagementLayout>
                 <DashboardPage />
-              </MainLayout>
+              </ManagementLayout>
             </ProtectedRoute>
           }
         />
@@ -45,9 +44,7 @@ export const AppRouter: React.FC = () => {
           path={ROUTES.PROFILE}
           element={
             <ProtectedRoute>
-              <MainLayout>
-                <ProfilePage />
-              </MainLayout>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />
@@ -55,9 +52,9 @@ export const AppRouter: React.FC = () => {
           path={ROUTES.SETTINGS}
           element={
             <ProtectedRoute>
-              <MainLayout>
+              <ManagementLayout>
                 <SettingsPage />
-              </MainLayout>
+              </ManagementLayout>
             </ProtectedRoute>
           }
         />
@@ -65,42 +62,40 @@ export const AppRouter: React.FC = () => {
           path={ROUTES.PRODUCTS}
           element={
             <ProtectedRoute>
-              <MainLayout>
+              <ManagementLayout>
                 <ProductsPage />
-              </MainLayout>
+              </ManagementLayout>
             </ProtectedRoute>
           }
         />
+
         <Route
-          path={ROUTES.SHOPPING}
+          path="/cart"
           element={
             <ProtectedRoute allowedRoles={['customer']}>
-              <MainLayout>
-                <ShoppingPage />
-              </MainLayout>
+              <CartPage />
             </ProtectedRoute>
           }
         />
-        
-        {/* Page for customer */}
+
         <Route
           path={ROUTES.REGISTER_VENDOR}
           element={
             <ProtectedRoute allowedRoles={['customer']}>
-              <MainLayout>
+              <ManagementLayout>
                 <RegisterVendorPage />
-              </MainLayout>
+              </ManagementLayout>
             </ProtectedRoute>
           }
         />
-        {/* Page for admin/staff */}
+
         <Route
           path={ROUTES.ADMIN_VENDORS}
           element={
             <ProtectedRoute allowedRoles={['admin', 'staff']}>
-              <MainLayout>
+              <ManagementLayout>
                 <VendorApprovalPage />
-              </MainLayout>
+              </ManagementLayout>
             </ProtectedRoute>
           }
         />
@@ -108,9 +103,9 @@ export const AppRouter: React.FC = () => {
           path={ROUTES.ADMIN_CATEGORIES}
           element={
             <ProtectedRoute allowedRoles={['admin', 'staff']}>
-              <MainLayout>
+              <ManagementLayout>
                 <CategoryManagementPage />
-              </MainLayout>
+              </ManagementLayout>
             </ProtectedRoute>
           }
         />
@@ -118,14 +113,14 @@ export const AppRouter: React.FC = () => {
           path={ROUTES.ADMIN_PRODUCTS_APPROVAL}
           element={
             <ProtectedRoute allowedRoles={['admin', 'staff']}>
-              <MainLayout>
+              <ManagementLayout>
                 <ProductApprovalPage />
-              </MainLayout>
+              </ManagementLayout>
             </ProtectedRoute>
           }
         />
-        {/* Catch all route - redirect to dashboard */}
-        <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+
+        <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
       </Routes>
     </BrowserRouter>
   );

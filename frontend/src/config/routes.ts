@@ -2,9 +2,10 @@ export const ROUTES = {
   // Auth routes
   LOGIN: '/login',
   REGISTER: '/register',
+  HOME: '/',
   
   // Protected routes
-  DASHBOARD: '/',
+  DASHBOARD: '/dashboard',
   PROFILE: '/profile',
   SETTINGS: '/settings',
   PRODUCTS: '/products',

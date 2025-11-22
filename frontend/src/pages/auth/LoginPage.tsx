@@ -1,7 +1,8 @@
 import React from 'react';
 import { Form, Input, Button, Card, Typography, Divider } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { Navigate, useLocation, Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { LoginCredentials } from '@/types/auth';
 import { ROUTES } from '@/config/routes';
@@ -9,15 +10,28 @@ import { ROUTES } from '@/config/routes';
 const { Title, Text } = Typography;
 
 export const LoginPage: React.FC = () => {
-  const { login, isAuthenticated, isLoginLoading } = useAuth();
+  const { login, isAuthenticated, isLoginLoading, user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [form] = Form.useForm();
 
-  // Redirect if already authenticated
-  const from = location.state?.from?.pathname || ROUTES.DASHBOARD;
-  if (isAuthenticated) {
-    return <Navigate to={from} replace />;
-  }
+  const requestedPath = location.state?.from?.pathname;
+
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+
+    if (requestedPath && requestedPath !== ROUTES.LOGIN) {
+      navigate(requestedPath, { replace: true });
+      return;
+    }
+
+    if (user.role === 'vendor' || user.role === 'admin' || user.role === 'staff') {
+      navigate(ROUTES.DASHBOARD, { replace: true });
+      return;
+    }
+
+    navigate(ROUTES.HOME, { replace: true });
+  }, [isAuthenticated, navigate, requestedPath, user]);
 
   const onFinish = async (values: LoginCredentials) => {
     try {

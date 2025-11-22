@@ -21,45 +21,58 @@ export const RegisterVendorPage: React.FC = () => {
     onError: showErrorMessage,
   });
 
+  // Thêm màu nền
+  const darkerBlueBg = '#bae7ff';
+
   return (
-    <Card style={{ maxWidth: 600, margin: 'auto' }}>
-      <Title level={3}>Start Selling on Our E-commerce Platform !</Title>
-      <p>
-        Complete the information below to submit your store registration request.
-        We will review it and get back to you as soon as possible.
-      </p>
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={mutation.mutate}
-        disabled={mutation.isPending}
-      >
-        <Form.Item
-          name="business_name"
-          label="Store / Business Name"
-          rules={[{ required: true, message: 'Please provide your store name' }]}
+    <div
+      style={{
+        background: darkerBlueBg,
+        padding: '40px 20px', 
+        minHeight: 'calc(100vh - 64px)', 
+      }}
+    >
+      <Card style={{ maxWidth: 600, margin: 'auto' }}>
+        <Title level={3}>Start Selling on Our E-commerce Platform !</Title>
+        <p>
+          Complete the information below to submit your store registration request.
+          We will review it and get back to you as soon as possible.
+        </p>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={mutation.mutate}
+          disabled={mutation.isPending}
         >
-          <Input placeholder="Example: Tech Store HCMUT" />
-        </Form.Item>
-        <Form.Item
-          name="description"
-          label="Description"
-          rules={[{ required: true, message: 'Please fill out the description' }]}
-        >
-          <TextArea rows={9} placeholder="Provide a description of the products you offer…" 
-          style={{ resize: 'none' }}
-          />
-        </Form.Item>
-        <Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            loading={mutation.isPending}
+          <Form.Item
+            name="business_name"
+            label="Store / Business Name"
+            rules={[{ required: true, message: 'Please provide your store name' }]}
           >
-            Submit
-          </Button>
-        </Form.Item>
-      </Form>
-    </Card>
+            <Input placeholder="Example: Tech Store HCMUT" />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label="Description"
+            rules={[{ required: true, message: 'Please fill out the description' }]}
+          >
+            <TextArea
+              rows={9}
+              placeholder="Provide a description of the products you offer…"
+              style={{ resize: 'none' }}
+            />
+          </Form.Item>
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={mutation.isPending}
+            >
+              Submit
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
+    </div>
   );
 };
