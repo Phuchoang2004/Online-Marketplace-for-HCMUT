@@ -11,6 +11,7 @@ import SellerDashboard from "./pages/SellerDashboard";
 import AdminPanel from "./pages/AdminPanel";
 import NotFound from "./pages/NotFound";
 import Profile from "@/pages/Profile.tsx";
+import Unauthorized from "@/pages/UnauthorizedPage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -21,13 +22,14 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/marketplace" element={<Marketplace />} />
-          <Route path="/seller/dashboard" element={<SellerDashboard />} />
-          <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/marketplace" element={<Marketplace />} />
+            <Route path="/seller/dashboard" element={<SellerDashboard />} />
+            <Route path="/admin" element={<AdminPanel />} />
             <Route path="/profile" element={<Profile/>} />
+            <Route path="/unauthorized" element={<Unauthorized/>}/>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, User, Search } from "lucide-react";
+import {ShoppingCart, User, Search, Shield} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
 
@@ -32,6 +32,14 @@ export const Navbar = () => {
 
                     {/* Right side */}
                     <nav className="flex items-center space-x-2">
+                        {user?.role === "ADMIN" && (
+                            <Button variant="ghost" size="sm" asChild className="text-amber-600 hover:text-amber-700 hover:bg-amber-50">
+                                <Link to="/admin/dashboard" className="flex items-center gap-2">
+                                    <Shield className="h-4 w-4" />
+                                    <span className="hidden lg:inline">Admin</span>
+                                </Link>
+                            </Button>
+                        )}
                         <Button variant="ghost" size="sm" asChild>
                             <Link to="/marketplace">Browse</Link>
                         </Button>
@@ -41,9 +49,9 @@ export const Navbar = () => {
                         </Button>
 
                         {user ? (
-                            <Button variant="ghost" size="sm" asChild>
+                            <><Button variant="ghost" size="sm" asChild>
                                 <Link to="/profile">{user.fullName}</Link>
-                            </Button>
+                            </Button><Button variant="destructive" size="sm" onClick={logout}>Logout</Button></>
                         ) : (
                             <Button variant="gold" size="sm" asChild>
                                 <Link to="/login">Login</Link>
