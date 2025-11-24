@@ -1,8 +1,11 @@
 import { Navbar } from "@/components/Navbar";
+import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Package, DollarSign, TrendingUp, Plus, Clock, CheckCircle } from "lucide-react";
+import {Package, DollarSign, TrendingUp, Plus, Clock, CheckCircle, Loader2} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {Navigate} from "react-router-dom";
+
 
 const SellerDashboard = () => {
   const stats = [
@@ -62,6 +65,23 @@ const SellerDashboard = () => {
       date: "2025-11-04"
     },
   ];
+    const { user, loading: authLoading } = useAuth();
+    if (authLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-[#870000]" />
+            </div>
+        );
+    }
+
+    if (!user) {
+        return <Navigate to="/login" replace />;
+    }
+
+    // Redirect to unauthorized if not admin
+    if (user.role !== "VENDOR") {
+        return <Navigate to="/unauthorized" replace />;
+    }
 
   return (
     <div className="min-h-screen bg-background">

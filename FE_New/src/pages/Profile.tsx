@@ -65,7 +65,7 @@ const Profile = () => {
                     const data = await res.json();
                     // Assumption: If the API returns data (not null/empty),
                     // it means a request exists.
-                    if (data && Object.keys(data).length > 0) {
+                    if (data && data.data.length > 0) {
                         setVendorRegistered(true);
                     }
                 }
