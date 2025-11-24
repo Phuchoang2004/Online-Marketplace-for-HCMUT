@@ -20,16 +20,23 @@ const vendorValidationSchema = {
    Only STAFF/ADMIN
    ========================================= */
 router.get('/api/vendors', auth, async (req, res) => {
-    if (!['STAFF', 'ADMIN'].includes(req.user.role)) {
-        return res.status(403).json({ errors: 'Only staff/admin can view vendors' });
-    }
-
     try {
         const { status } = req.query; // optional: PENDING | APPROVED | REJECTED
         const filter = {};
+        if(req.user.role === 'USER'){
+            filter.user = req.user.id;
+            filter.approvalStatus = 'PENDING';
+            const items = await Vendor.find(filter)
+                .populate('user', 'fullName email')
+                .lean();
+            return res.json({ success: true, data: items });
+        }
         if (status) filter.approvalStatus = status;
 
-        const items = await Vendor.find(filter).lean();
+
+        const items = await Vendor.find(filter)
+            .populate('user', 'fullName email')
+            .lean();
         return res.json({ success: true, data: items });
     } catch (err) {
         return res.status(400).json({ errors: err.message });
