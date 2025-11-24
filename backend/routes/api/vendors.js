@@ -4,7 +4,7 @@ const { checkSchema, validationResult, check } = require('express-validator');
 
 const auth = require('../../middlewares/authMiddleware');
 const Vendor = require('../../models/Vendor');
-const User = require('../../models/User').default;
+const User = require('../../models/User');
 // const AuditLog = require('../../models/AuditLog');
 
 // =========================================
