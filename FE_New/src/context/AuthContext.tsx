@@ -10,7 +10,6 @@ type User = {
     exp: number;
 };
 
-
 // Custom JWT decoder
 const decodeJWT = (token: string): User | null => {
     try {
@@ -28,25 +27,47 @@ type AuthContextType = {
     setUser: React.Dispatch<React.SetStateAction<User | null>>;
     login: (token: string) => void;
     logout: () => void;
+    loading: boolean;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    // Load user from localStorage on mount
+    useEffect(() => {
+        const token = localStorage.getItem("accessToken");
+        if (token) {
+            const decoded = decodeJWT(token);
+            if (decoded) {
+                // Optional: Check if token is expired
+                const currentTime = Date.now() / 1000;
+                if (decoded.exp > currentTime) {
+                    setUser(decoded);
+                } else {
+                    // Token expired, remove it
+                    localStorage.removeItem("accessToken");
+                }
+            }
+        }
+        setLoading(false);
+    }, []);
 
     const login = (token: string) => {
         localStorage.setItem("accessToken", token);
         const decoded = decodeJWT(token);
         setUser(decoded);
     };
+
     const logout = () => {
         localStorage.removeItem("accessToken");
         setUser(null);
     };
 
     return (
-        <AuthContext.Provider value={{ user, setUser, login, logout }}>
+        <AuthContext.Provider value={{ user, setUser, login, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );
