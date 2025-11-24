@@ -7,7 +7,7 @@ const { check, validationResult } = require('express-validator');
 const auth = require('../../middlewares/authMiddleware');
 const Product = require('../../models/Product');
 const Vendor = require('../../models/Vendor');
-const User = require('../../models/User');
+const User = require('../../models/User').default;
 const Notification = require('../../models/Notification');
 const AuditLog = require('../../models/AuditLog');
 

@@ -4,26 +4,26 @@ const { checkSchema, validationResult, check } = require('express-validator');
 
 const auth = require('../../middlewares/authMiddleware');
 const Vendor = require('../../models/Vendor');
-const User = require('../../models/User');
+const User = require('../../models/User').default;
 // const AuditLog = require('../../models/AuditLog');
 
-/* =========================================
-   Validation schema
-   ========================================= */
+// =========================================
+// Validation schema
+//  =========================================
 const vendorValidationSchema = {
     business_name: { notEmpty: { errorMessage: 'Business name is required' } },
     description: { optional: true, isString: { errorMessage: 'Description must be a string' } },
 };
 
-/* =========================================
-   GET /api/vendors (list all or filter by status)
-   Only STAFF/ADMIN
-   ========================================= */
+// =========================================
+// GET /api/vendors (list all or filter by status)
+// Only STAFF/ADMIN
+// =========================================
 router.get('/api/vendors', auth, async (req, res) => {
     try {
         const { status } = req.query; // optional: PENDING | APPROVED | REJECTED
         const filter = {};
-        if(req.user.role === 'USER'){
+        if (req.user.role === 'USER') {
             filter.user = req.user.id;
             filter.approvalStatus = 'PENDING';
             const items = await Vendor.find(filter)
@@ -43,9 +43,26 @@ router.get('/api/vendors', auth, async (req, res) => {
     }
 });
 
-/* =========================================
-   POST /api/vendor/register
-   ========================================= */
+// =========================================
+// GET /api/vendor/:id
+// =========================================
+router.get('/api/vendors/:id', auth, async (req, res) => {
+    try {
+        const vendor = await Vendor.findById(req.params.id)
+            .populate('user', 'fullName email role')
+            .lean();
+        if (!vendor) {
+            return res.status(404).json({ errors: 'Vendor not found' });
+        }
+        return res.json({ success: true, data: vendor });
+    } catch (err) {
+        return res.status(400).json({ errors: err.message });
+    }
+});
+
+// =========================================
+// POST /api/vendor/register
+// =========================================
 router.post('/api/vendor/register', auth, checkSchema(vendorValidationSchema), async (req, res) => {
     if (req.user.role !== 'CUSTOMER') {
         return res.status(403).json({ errors: 'Only CUSTOMER can register vendor' });
@@ -95,9 +112,9 @@ router.post('/api/vendor/register', auth, checkSchema(vendorValidationSchema), a
     }
 });
 
-/* =========================================
-   POST /api/vendor/:id/approve
-   ========================================= */
+// =========================================
+// POST /api/vendor/:id/approve
+// =========================================
 router.post('/api/vendor/:id/approve', auth, async (req, res) => {
     if (!['STAFF', 'ADMIN'].includes(req.user.role)) {
         return res.status(403).json({ errors: 'Only staff/admin can approve' });
@@ -154,9 +171,9 @@ router.post('/api/vendor/:id/approve', auth, async (req, res) => {
     }
 });
 
-/* =========================================
-   POST /api/vendor/:id/reject
-   ========================================= */
+// =========================================
+// POST /api/vendor/:id/reject
+// ========================================= 
 router.post(
     '/api/vendor/:id/reject',
     auth,
