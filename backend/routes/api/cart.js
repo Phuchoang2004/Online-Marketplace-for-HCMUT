@@ -143,6 +143,12 @@ router.post('/api/cart/checkout', auth, async (req, res) => {
     try {
         const userId = req.user.id;
 
+        // Validate user address before checkout
+        const user = await require('../../models/User').findById(userId);
+        if (!user || !user.address || user.address.trim() === '') {
+            return res.status(400).json({ success: false, message: 'User address is required before checkout.' });
+        }
+
         // Load user's cart
         const cart = await Cart.findOne({ user: userId })
             .populate({
@@ -178,6 +184,14 @@ router.post('/api/cart/checkout', auth, async (req, res) => {
             vendorGroups[vendorId].totalAmount += subtotal;
         }
 
+        // Before creating orders, check stock
+        for (const item of cart.items) {
+            const product = await Product.findById(item.product._id);
+            if (!product || product.stock < item.quantity) {
+                return res.status(400).json({ success: false, message: `Not enough stock for ${product ? product.name : 'a product'}` });
+            }
+        }
+
         const createdOrders = [];
         for (const vendorId in vendorGroups) {
             const vendorData = vendorGroups[vendorId];
@@ -191,6 +205,11 @@ router.post('/api/cart/checkout', auth, async (req, res) => {
 
             await newOrder.save();
             createdOrders.push(newOrder);
+        }
+
+        // After creating orders, deduct stock
+        for (const item of cart.items) {
+            await Product.findByIdAndUpdate(item.product._id, { $inc: { stock: -item.quantity } });
         }
 
         cart.items = [];
