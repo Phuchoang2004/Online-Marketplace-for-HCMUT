@@ -12,6 +12,7 @@ import AdminPanel from "./pages/AdminPanel";
 import NotFound from "./pages/NotFound";
 import Profile from "@/pages/Profile.tsx";
 import Unauthorized from "@/pages/UnauthorizedPage.tsx";
+import Cart from "@/pages/Cart.tsx";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/profile" element={<Profile/>} />
             <Route path="/unauthorized" element={<Unauthorized/>}/>
+            <Route path="/mycart" element={<Cart/>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
