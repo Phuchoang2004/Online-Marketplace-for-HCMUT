@@ -43,6 +43,7 @@ const Cart = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [calculating, setCalculating] = useState(false);
+    const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         // Fetch cart data
@@ -70,6 +71,7 @@ const Cart = () => {
 
                 const data = await res.json();
                 const items = Array.isArray(data) ? data : (data.items || []);
+                console.log(items);
                 setCartItems(items);
             } catch (err) {
                 console.error(err);
@@ -86,7 +88,91 @@ const Cart = () => {
             navigate("/login");
         }
     }, [user, authLoading, navigate]);
+    const handleRemoveItem = async (itemId: string) => {
+        try {
+            const token = localStorage.getItem("accessToken");
+            const res = await fetch(`http://localhost:5000/api/cart/${itemId}`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                },
+            })
 
+            if (res.status === 401) {
+                // Handle session expiration if needed
+                return;
+            }
+
+            if (!res.ok) {
+                throw new Error("Failed to remove item");
+            }
+
+            // Remove item from local state immediately for UI responsiveness
+            setCartItems((prevItems) => prevItems.filter((item) => item.product._id !== itemId));
+
+            toast({
+                title: "Item removed",
+                description: `The item has been removed from your cart.`,
+            });
+
+        } catch (err) {
+            console.error(err);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Could not remove item. Please try again.",
+            });
+        }
+    };
+
+    const handleUpdateQuantity = async (cartItemId: string, newQuantity: number) => {
+        if (newQuantity < 1 || updatingItems.has(cartItemId)) return;
+
+        const originalItems = [...cartItems]; // Keep copy in case of error
+        setCartItems(prev => prev.map(item =>
+            item.product._id === cartItemId ? { ...item, quantity: newQuantity } : item
+        ));
+
+        setUpdatingItems(prev => new Set(prev).add(cartItemId));
+
+        try {
+            const token = localStorage.getItem("accessToken");
+            const res = await fetch(`http://localhost:5000/api/cart/${cartItemId}`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ quantity: newQuantity }),
+            });
+
+            if (!res.ok) {
+                if (res.status === 400) {
+                    toast({
+                        variant: "destructive",
+                        title: "Update failed",
+                        description: "Item out of stock or quantity exceeds limit.",
+                    });
+                }else {
+                    toast({
+                        variant: "destructive",
+                        title: "Update failed",
+                        description: "Failed to update cart item. Please try again.",
+                    })
+                }
+                setCartItems(originalItems);
+            }
+
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setUpdatingItems(prev => {
+                const next = new Set(prev);
+                next.delete(cartItemId);
+                return next;
+            });
+        }
+    };
     // Calculate totals
     const subtotal = cartItems.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
     const shipping = subtotal > 0 ? 30000 : 0; // Flat rate example, 0 if empty
@@ -160,7 +246,7 @@ const Cart = () => {
                         <div className="lg:col-span-2 space-y-4">
                             {cartItems.map((item) => (
                                 <div
-                                    key={item._id}
+                                    key={item.product._id}
                                     className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex gap-4 transition-all hover:shadow-md"
                                 >
                                     {/* Product Image Placeholder */}
@@ -186,6 +272,7 @@ const Cart = () => {
                                                     {item.product.name}
                                                 </h3>
                                                 <button
+                                                    onClick={() => handleRemoveItem(item.product._id)}
                                                     className="text-gray-400 hover:text-red-500 transition-colors p-1"
                                                     title="Remove item"
                                                 >
@@ -201,14 +288,17 @@ const Cart = () => {
                                             {/* Quantity Control */}
                                             <div className="flex items-center border border-gray-200 rounded-lg bg-gray-50">
                                                 <button
+                                                    onClick={() => handleUpdateQuantity(item.product._id, item.quantity - 1)}
                                                     className="p-1 px-2 hover:bg-gray-200 rounded-l-lg transition-colors disabled:opacity-50"
-                                                    disabled={item.quantity <= 1}
+                                                    disabled={item.quantity <= 1 || updatingItems.has(item.product._id)}
                                                 >
                                                     <Minus className="h-3 w-3" />
                                                 </button>
                                                 <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
                                                 <button
+                                                    onClick={() => handleUpdateQuantity(item.product._id, item.quantity + 1)}
                                                     className="p-1 px-2 hover:bg-gray-200 rounded-r-lg transition-colors"
+                                                    disabled={updatingItems.has(item.product._id)}
                                                 >
                                                     <Plus className="h-3 w-3" />
                                                 </button>
