@@ -17,20 +17,33 @@ router.get('/', auth, async (req, res) => {
         .populate('user', 'fullName email')
         .populate('items.product', 'name price')
         .sort({ createdAt: -1 });
-    } else {
-        filter.user = user.id;
-        if (type) filter.status = type.toUpperCase();
-      orders = await Order.find(filter)
-        .populate('items.product', 'name price')
-        .sort({ createdAt: -1 });
+    }else{
+        res.status(403).json({ success: false, message: 'Unauthorized role' });
+        return;
     }
-
     res.status(200).json({ success: true, orders });
   } catch (error) {
     console.error('[List Orders Error]', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
+router.get('/my', auth, async (req, res) => {
+    try{
+        const user = req.user;
+        let orders;
+        const filter = {};
+        const { type } = req.query;
+        filter.user = user.id;
+        if (type) filter.status = type.toUpperCase();
+        orders = await Order.find(filter)
+            .populate('items.product', 'name price')
+            .sort({ createdAt: -1 });
+        res.status(200).json({ success: true, orders });
+    }catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+})
 
 router.get('/:id', auth, async (req, res) => {
   try {

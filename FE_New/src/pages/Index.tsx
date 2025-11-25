@@ -4,46 +4,83 @@ import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
-import { ArrowRight, Shield, Users, Zap } from "lucide-react";
+import { ArrowRight, Shield, Users, Zap, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 import heroImage from "@/assets/hero-marketplace.jpg";
-import product1 from "@/assets/sample-product-1.jpg";
-import product2 from "@/assets/sample-product-2.jpg";
-import product3 from "@/assets/sample-product-3.jpg";
 
-/* ---------------- JWT Decoder ---------------- */
-
+// Interface reflecting your Backend Data Structure
+interface ProductData {
+    _id: string;
+    name: string;
+    price: number;
+    description: string;
+    category: string | { name: string };
+    images: string[] | { url: string }[];
+    vendor: { businessName: string };
+    createdAt: string;
+}
 
 const Index = () => {
     const { user } = useAuth();
 
-    const featuredProducts = [
-        {
-            image: product1,
-            title: "MacBook Pro 2021 - Like New",
-            price: 25000000,
-            category: "Electronics",
-            rating: 4.8,
-            seller: "Nguyen Van A",
-        },
-        {
-            image: product2,
-            title: "Engineering Textbook Collection",
-            price: 500000,
-            category: "Books",
-            rating: 4.5,
-            seller: "Tran Thi B",
-        },
-        {
-            image: product3,
-            title: "Premium Student Backpack",
-            price: 800000,
-            category: "Accessories",
-            rating: 4.7,
-            seller: "Le Van C",
-        },
-    ];
+    // State for API Data
+    const [products, setProducts] = useState<ProductData[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    // Fetch Products on Mount
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                // Fetching from the API you specified
+                const token = localStorage.getItem('accessToken');
+                const response = await fetch('http://localhost:5000/api/products', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const result = await response.json();
+                console.log("Fetched Products:", result);
+
+                if (result.success) {
+                    // Sort by newest and take the top 3-6 for the homepage
+                    const sorted = result.data.sort((a: ProductData, b: ProductData) =>
+                        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                    );
+                    setProducts(sorted.slice(0, 3)); // Only show top 3
+                }
+            } catch (error) {
+                console.error("Failed to fetch products:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProducts();
+    }, []);
+
+    // Helper to process Image URLs from backend
+    const getImageUrl = (product: ProductData) => {
+        if (!product.images || product.images.length === 0) return "https://placehold.co/400x300?text=No+Image";
+
+        const firstImg = product.images[0];
+        let url = typeof firstImg === 'string' ? firstImg : firstImg.url;
+
+        // Fix localhost pathing
+        if (url && !url.startsWith('http')) {
+            return `http://localhost:5000${url.replace('/uploads', '/static')}`;
+        }
+        return url;
+    };
+
+    // Helper to process Category Name safely
+    const getCategoryName = (category: string | { name: string } | null) => {
+        if (!category) return "General";
+        if (typeof category === 'object') return category.name;
+        return category;
+    };
 
     return (
         <div className="min-h-screen bg-background">
@@ -81,20 +118,14 @@ const Index = () => {
                                     : "Buy, sell, and trade safely within the HCMUT community. From textbooks to tech, find everything you need from fellow students."}
                             </p>
 
-                            {/* ---------------- Action Buttons ---------------- */}
+                            {/* Action Buttons */}
                             <div className="flex flex-wrap gap-4">
                                 {user ? (
-                                    <>
-                                        <Button size="lg" asChild>
-                                            <Link to="/marketplace">
-                                                Go to Marketplace <ArrowRight className="ml-2 h-5 w-5" />
-                                            </Link>
-                                        </Button>
-
-                                        {/*<Button size="lg" variant="outline" asChild>*/}
-                                        {/*    <Link to="/account">Manage Account</Link>*/}
-                                        {/*</Button>*/}
-                                    </>
+                                    <Button size="lg" asChild>
+                                        <Link to="/marketplace">
+                                            Go to Marketplace <ArrowRight className="ml-2 h-5 w-5" />
+                                        </Link>
+                                    </Button>
                                 ) : (
                                     <>
                                         <Button size="lg" variant="default" asChild>
@@ -109,26 +140,20 @@ const Index = () => {
                                 )}
                             </div>
 
-                            {/* Stats (only show if not logged in) */}
+                            {/* Stats */}
                             {!user && (
                                 <div className="grid grid-cols-3 gap-6 pt-8 border-t border-border">
                                     <div>
                                         <div className="text-2xl font-bold text-primary">500+</div>
-                                        <div className="text-sm text-muted-foreground">
-                                            Active Users
-                                        </div>
+                                        <div className="text-sm text-muted-foreground">Active Users</div>
                                     </div>
                                     <div>
                                         <div className="text-2xl font-bold text-primary">1,200+</div>
-                                        <div className="text-sm text-muted-foreground">
-                                            Products
-                                        </div>
+                                        <div className="text-sm text-muted-foreground">Products</div>
                                     </div>
                                     <div>
                                         <div className="text-2xl font-bold text-primary">98%</div>
-                                        <div className="text-sm text-muted-foreground">
-                                            Satisfaction
-                                        </div>
+                                        <div className="text-sm text-muted-foreground">Satisfaction</div>
                                     </div>
                                 </div>
                             )}
@@ -149,9 +174,7 @@ const Index = () => {
                                     </div>
                                     <div>
                                         <div className="font-semibold">Safe & Verified</div>
-                                        <div className="text-sm text-muted-foreground">
-                                            All users verified
-                                        </div>
+                                        <div className="text-sm text-muted-foreground">All users verified</div>
                                     </div>
                                 </div>
                             </div>
@@ -166,8 +189,7 @@ const Index = () => {
                     <div className="text-center mb-12">
                         <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose Us?</h2>
                         <p className="text-muted-foreground max-w-2xl mx-auto">
-                            Built specifically for the HCMUT community with safety and
-                            convenience in mind
+                            Built specifically for the HCMUT community with safety and convenience in mind
                         </p>
                     </div>
 
@@ -191,32 +213,47 @@ const Index = () => {
                 </div>
             </section>
 
-            {/* Featured Products */}
+            {/* Featured Products (DYNAMIC) */}
             <section className="py-20">
                 <div className="container mx-auto px-4">
                     <div className="flex items-center justify-between mb-8">
                         <div>
-                            <h2 className="text-3xl md:text-4xl font-bold mb-2">
-                                Featured Items
-                            </h2>
-                            <p className="text-muted-foreground">
-                                Popular products from your fellow students
-                            </p>
+                            <h2 className="text-3xl md:text-4xl font-bold mb-2">Featured Items</h2>
+                            <p className="text-muted-foreground">Newest products from fellow students</p>
                         </div>
                         <Button variant="outline" asChild>
                             <Link to="/marketplace">View All</Link>
                         </Button>
                     </div>
 
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {featuredProducts.map((product, index) => (
-                            <ProductCard key={index} {...product} />
-                        ))}
-                    </div>
+                    {loading ? (
+                        <div className="flex justify-center py-20">
+                            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                        </div>
+                    ) : (
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {products.length > 0 ? (
+                                products.map((product) => (
+                                    <ProductCard
+                                        key={product._id}
+                                        image={getImageUrl(product)}
+                                        title={product.name}
+                                        price={product.price}
+                                        rating={5.0} // Default rating if API doesn't have it
+                                        seller={product.vendor?.businessName || "Unknown Seller"}
+                                    />
+                                ))
+                            ) : (
+                                <p className="col-span-3 text-center text-muted-foreground py-10">
+                                    No products found. Be the first to list something!
+                                </p>
+                            )}
+                        </div>
+                    )}
                 </div>
             </section>
 
-            {/* CTA Section (HIDDEN WHEN LOGGED IN) */}
+            {/* CTA Section */}
             {!user && (
                 <section className="py-20 bg-gradient-to-br from-primary to-primary/80">
                     <div className="container mx-auto px-4 text-center">
@@ -224,8 +261,7 @@ const Index = () => {
                             Ready to Start Trading?
                         </h2>
                         <p className="text-primary-foreground/90 text-lg mb-8 max-w-2xl mx-auto">
-                            Join hundreds of HCMUT students already buying and selling on our
-                            platform
+                            Join hundreds of HCMUT students already buying and selling on our platform
                         </p>
                         <div className="flex flex-wrap gap-4 justify-center">
                             <Button size="lg" variant="gold" asChild>

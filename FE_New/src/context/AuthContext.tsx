@@ -4,9 +4,12 @@ type User = {
     fullName: string;
     email: string;
     role: string;
+    address: string;
+    phone: string;
     permission: string[];
     id: string;
     iat: number;
+    vendorProfile: string;
     exp: number;
 };
 
@@ -59,6 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         localStorage.setItem("accessToken", token);
         const decoded = decodeJWT(token);
         setUser(decoded);
+        console.log("Decoded user:", decoded);
     };
 
     const logout = () => {

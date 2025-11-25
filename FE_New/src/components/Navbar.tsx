@@ -35,16 +35,7 @@ export const Navbar = () => {
                             <span className="font-bold text-lg sm:hidden">HCMUT</span>
                         </Link>
 
-                        {/* Search */}
-                        <div className="hidden md:flex flex-1 max-w-md mx-8">
-                            <div className="relative w-full">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Search products..."
-                                    className="pl-10 bg-background"
-                                />
-                            </div>
-                        </div>
+
 
                         {/* Right side */}
                         <nav className="flex items-center space-x-2">

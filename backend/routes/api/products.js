@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 5 } });
+const path = require('path');
+const fs = require('fs');
 const { check, validationResult } = require('express-validator');
 
 const auth = require('../../middlewares/authMiddleware');
@@ -14,7 +15,24 @@ const AuditLog = require('../../models/AuditLog');
 /* ------------------------- Helpers ------------------------- */
 const isStaff = (user) => user.role === 'STAFF' || user.role === 'ADMIN';
 const isVendor = (user) => user.role === 'VENDOR';
-
+const uploadDir = path.join(__dirname, '../../uploads/products/');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);
+        cb(null, 'product-' + uniqueSuffix + ext);
+    }
+});
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }
+});
 async function resolveApprovedVendorId(userJwt) {
     const user = await User.findById(userJwt.id).select('role vendorProfile');
     if (!user) throw { status: 401, msg: 'User not found' };
@@ -72,15 +90,21 @@ router.post(
     ],
     async (req, res) => {
         const errors = validationResult(req);
-        if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+        if (!errors.isEmpty()) {
+            if (req.files) {
+                req.files.forEach(f => fs.unlinkSync(f.path));
+            }
+            return res.status(400).json({ errors: errors.array() });
+        }
 
         try {
             const vendorId = await resolveApprovedVendorId(req.user);
             const { category, name, description, price, stock } = req.body;
             let images = [];
             if (req.files && req.files.length > 0) {
-                // For demo: convert to in-memory data URLs. In production, upload to storage (S3, cloudinary) and save returned URLs.
-                images = req.files.map((f) => ({ url: `data:${f.mimetype};base64,${f.buffer.toString('base64')}` }));
+                images = req.files.map((f) => {
+                    return { url: `/uploads/products/${f.filename}` };
+                });
             } else if (req.body.images) {
                 try {
                     const parsed = typeof req.body.images === 'string' ? JSON.parse(req.body.images) : req.body.images;
@@ -113,6 +137,9 @@ router.post(
 
             return res.status(201).json({ success: true, product });
         } catch (e) {
+            if (req.files) {
+                req.files.forEach(f => fs.unlinkSync(f.path));
+            }
             const status = e?.status || 400;
             const msg = e?.msg || e?.message || 'Bad request';
             return res.status(status).json({ errors: msg });
@@ -221,14 +248,29 @@ router.get('/api/products/:id', auth, async (req, res) => {
 // BROWSE APPROVED PRODUCTS (Public)
 router.get('/api/products', async (req, res) => {
     try {
-        const { keyword, category, sortBy = 'newest', page = 1, limit = 12 } = req.query;
+        const {
+            keyword,
+            category,
+            minPrice,
+            maxPrice,
+            sortBy = 'newest',
+            page = 1,
+            limit = 12
+        } = req.query;
 
         const filter = { approvalStatus: 'APPROVED' };
+
         if (keyword) filter.name = { $regex: keyword, $options: 'i' };
-        if (category) filter.category = category;
+        if (category && category !== 'all') filter.category = category;
+
+        if (minPrice || maxPrice) {
+            filter.price = {};
+            if (minPrice) filter.price.$gte = Number(minPrice);
+            if (maxPrice) filter.price.$lte = Number(maxPrice);
+        }
 
         const sortMap = {
-            price: { price: 1 },
+            "price-desc": { price: -1 },
             newest: { createdAt: -1 },
             popularity: { createdAt: -1 },
         };
@@ -236,7 +278,12 @@ router.get('/api/products', async (req, res) => {
         const skip = (Number(page) - 1) * Number(limit);
 
         const [items, total] = await Promise.all([
-            Product.find(filter).sort(sortMap[sortBy] || sortMap.newest).skip(skip).limit(Number(limit)),
+            Product.find(filter)
+                .populate('vendor', 'businessName')
+                .populate('category', 'name')
+                .sort(sortMap[sortBy] || sortMap.newest)
+                .skip(skip)
+                .limit(Number(limit)),
             Product.countDocuments(filter),
         ]);
 

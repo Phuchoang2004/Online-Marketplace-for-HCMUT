@@ -14,7 +14,7 @@ import {
     AlertCircle,
     CheckCircle2,
     Clock, // Added Clock icon
-    X
+    X, Package
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar.tsx";
 
@@ -261,6 +261,26 @@ const Profile = () => {
                                         <ShieldCheck className="w-4 h-4 text-[#870000]" />
                                         {user.id || "N/A"}
                                     </div>
+                                </div>
+                            </div>
+                            <div className="mt-6 pt-6 border-t border-gray-100">
+                                <h2 className="text-xl font-semibold text-[#333333] flex items-center gap-2 mb-4">
+                                    <Package className="w-5 h-5 text-[#870000]" />
+                                    Order History
+                                </h2>
+                                <div className="bg-white border border-gray-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row items-center justify-between gap-4">
+                                    <div className="text-center sm:text-left">
+                                        <h3 className="font-bold text-[#333333] text-lg">My Purchases</h3>
+                                        <p className="text-gray-500 text-sm mt-1">
+                                            Track your orders, view details, and manage returns.
+                                        </p>
+                                    </div>
+                                    <Button
+                                        onClick={() => navigate("/myorder")}
+                                        className="bg-white text-[#870000] border-2 border-[#870000] hover:bg-[#870000] hover:text-white font-semibold transition-all min-w-[150px] py-2"
+                                    >
+                                        View My Orders
+                                    </Button>
                                 </div>
                             </div>
 

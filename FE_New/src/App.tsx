@@ -13,6 +13,9 @@ import NotFound from "./pages/NotFound";
 import Profile from "@/pages/Profile.tsx";
 import Unauthorized from "@/pages/UnauthorizedPage.tsx";
 import Cart from "@/pages/Cart.tsx";
+import MyOrders from "@/pages/MyOrders.tsx";
+import ListProduct from "@/pages/ListProduct.tsx";
+import AddProduct from "@/pages/AddProduct.tsx";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +35,9 @@ const App = () => (
             <Route path="/profile" element={<Profile/>} />
             <Route path="/unauthorized" element={<Unauthorized/>}/>
             <Route path="/mycart" element={<Cart/>} />
+            <Route path="/myorder" element={<MyOrders/>}/>
+            <Route path="/vendor/products" element={<ListProduct/>} />
+            <Route path="/vendor/products/add" element={<AddProduct/>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
