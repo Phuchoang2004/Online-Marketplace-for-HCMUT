@@ -3,6 +3,7 @@ const express = require('express');
 const connectDB = require('./config/db')
 const app = express();
 const PORT = process.env.PORT || 3000;
+const path = require('path');
 const cors = require('cors')
 const bodyParser = require('body-parser')
 
@@ -10,6 +11,7 @@ const bodyParser = require('body-parser')
 connectDB();
 
 app.use(cors({origin:'http://localhost:3000'}));
+app.use('/static', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json({extended : false}));
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));

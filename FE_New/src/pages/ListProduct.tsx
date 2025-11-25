@@ -6,6 +6,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
     Plus,
     Search,
     Edit,
@@ -14,7 +24,7 @@ import {
     ArrowLeft,
     PackageOpen
 } from "lucide-react";
-import {Navigate, useNavigate} from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
 // Interface matching your Product Schema structure
@@ -23,22 +33,29 @@ interface Product {
     name: string;
     description: string;
     price: number;
-    images: string[];
+    images: { url: string }[];
     category: string;
     stock: number;
     createdAt: string;
     approvalStatus: string;
 }
 
+const getImageUrl = (imagePath: string) => {
+    if (!imagePath) return "/placeholder.png"; // Fallback image
+    if (imagePath.startsWith("http")) return imagePath;
+    const formattedPath = imagePath.replace('/uploads', '/static');
+    return `http://localhost:5000${formattedPath}`;
+};
 const ListProducts = () => {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
-
 
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
+    const [productToDelete, setProductToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         fetchProducts();
@@ -49,11 +66,10 @@ const ListProducts = () => {
             const token = localStorage.getItem('accessToken');
 
             if (!token) {
-                setError("Authentication token not found");
-                setLoading(false);
+                logout();
+                navigate('/login');
                 return;
             }
-
             const response = await fetch('http://localhost:5000/api/vendor/products', {
                 method: 'GET',
                 headers: {
@@ -61,6 +77,12 @@ const ListProducts = () => {
                     'Authorization': `Bearer ${token}`
                 }
             });
+
+            if (response.status === 401) {
+                logout();
+                navigate('/login');
+                return;
+            }
 
             const result = await response.json();
 
@@ -78,24 +100,40 @@ const ListProducts = () => {
         }
     };
 
+    const confirmDelete = async () => {
+        if (!productToDelete) return;
+
+        setIsDeleting(true);
+        try {
+            const token = localStorage.getItem('accessToken');
+
+            const response = await fetch(`http://localhost:5000/api/products/${productToDelete}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                setProducts(prev => prev.filter(p => p._id !== productToDelete));
+                setProductToDelete(null); // Close modal
+            } else {
+                const data = await response.json();
+                alert(data.message || "Failed to delete product");
+            }
+        } catch (error) {
+            console.error("Delete failed", error);
+            alert("Network error while deleting");
+        } finally {
+            setIsDeleting(false);
+            setProductToDelete(null);
+        }
+    };
+
     const filteredProducts = products.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
-    const handleDelete = async (id: string) => {
-        if(!window.confirm("Are you sure you want to delete this product?")) return;
-
-        // Example delete implementation
-        /*
-        const token = localStorage.getItem('accessToken');
-        await fetch(`http://localhost:5000/api/products/${id}`, {
-             method: 'DELETE',
-             headers: { Authorization: `Bearer ${token}` }
-        });
-        fetchProducts(); // Refresh list
-        */
-        console.log("Delete product:", id);
-    };
 
     if (loading) {
         return (
@@ -104,6 +142,7 @@ const ListProducts = () => {
             </div>
         );
     }
+
     if (!user) return <Navigate to="/login" replace />;
     if (user.role !== "VENDOR") return <Navigate to="/unauthorized" replace />;
 
@@ -129,7 +168,7 @@ const ListProducts = () => {
                     <Button
                         size="lg"
                         variant="gold"
-                        onClick={() => navigate('/vendor/add-product')}
+                        onClick={() => navigate('/vendor/products/add')}
                     >
                         <Plus className="mr-2 h-5 w-5" />
                         Add New Product
@@ -189,13 +228,19 @@ const ListProducts = () => {
                                                 <div className="h-12 w-12 rounded-md bg-muted overflow-hidden">
                                                     {product.images && product.images.length > 0 ? (
                                                         <img
-                                                            src={product.images[0]}
+                                                            src={getImageUrl(product.images[0].url)}
                                                             alt={product.name}
                                                             className="h-full w-full object-cover"
+                                                            onError={(e) => {
+                                                                console.log(getImageUrl(product.images[0].url))
+                                                                console.error("Failed to load image:", e);
+                                                                (e.target as HTMLImageElement).src = "https://placehold.co/48x48?text=No+Img";
+                                                            }}
                                                         />
+
                                                     ) : (
                                                         <div className="h-full w-full flex items-center justify-center bg-gray-100 text-gray-400">
-                                                            No Img
+                                                            No Image
                                                         </div>
                                                     )}
                                                 </div>
@@ -224,8 +269,8 @@ const ListProducts = () => {
                                             </TableCell>
                                             <TableCell>
                                                 <Badge
-                                                    variant={product.approvalStatus == 'PENDING' ? "outline" : "secondary"}
-                                                    className={product.approvalStatus == 'APPROVED' ? "text-green-600 border-green-200 bg-green-50" : "text-yellow-600 border-yellow-200 bg-yellow-50"}
+                                                    variant={product.approvalStatus === 'PENDING' ? "outline" : "secondary"}
+                                                    className={product.approvalStatus === 'APPROVED' ? "text-green-600 border-green-200 bg-green-50" : product.approvalStatus === 'PENDING' ? "text-yellow-600 border-yellow-200 bg-yellow-50" : "text-red-600"}
                                                 >
                                                     {product.approvalStatus}
                                                 </Badge>
@@ -242,7 +287,8 @@ const ListProducts = () => {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        onClick={() => handleDelete(product._id)}
+                                                        // Sets the ID to state, which opens the modal
+                                                        onClick={() => setProductToDelete(product._id)}
                                                     >
                                                         <Trash2 className="h-4 w-4 text-red-600" />
                                                     </Button>
@@ -255,6 +301,40 @@ const ListProducts = () => {
                         )}
                     </CardContent>
                 </Card>
+
+                {/* Delete Confirmation Modal */}
+                <AlertDialog open={!!productToDelete} onOpenChange={(open) => !open && setProductToDelete(null)}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the product
+                                <span className="font-semibold"> {products.find(p => p._id === productToDelete)?.name} </span>
+                                and remove it from our servers.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={(e) => {
+                                    e.preventDefault(); // Prevent auto-close
+                                    confirmDelete();
+                                }}
+                                className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                                disabled={isDeleting}
+                            >
+                                {isDeleting ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Deleting...
+                                    </>
+                                ) : (
+                                    "Delete"
+                                )}
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         </div>
     );

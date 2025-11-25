@@ -262,7 +262,7 @@ const SellerDashboard = () => {
                                 <Package className="h-6 w-6" />
                                 <span>My Listings</span>
                             </Button>
-                            <Button variant="outline" className="h-24 flex flex-col gap-2">
+                            <Button variant="outline" className="h-24 flex flex-col gap-2" onClick={() => navigate('/vendor/products/add')}>
                                 <Plus className="h-6 w-6" />
                                 <span>Add Product</span>
                             </Button>
