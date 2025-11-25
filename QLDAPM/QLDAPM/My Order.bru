@@ -5,13 +5,9 @@ meta {
 }
 
 get {
-  url: http://localhost:5000/api/orders?status=PENDING
+  url: http://localhost:5000/api/orders/my
   body: none
   auth: none
-}
-
-params:query {
-  status: PENDING
 }
 
 headers {

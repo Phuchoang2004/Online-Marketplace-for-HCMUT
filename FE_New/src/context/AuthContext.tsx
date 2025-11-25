@@ -9,6 +9,7 @@ type User = {
     permission: string[];
     id: string;
     iat: number;
+    vendorProfile: string;
     exp: number;
 };
 

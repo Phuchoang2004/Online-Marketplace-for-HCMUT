@@ -94,6 +94,7 @@ router.post(
                 permission: user.permissions,
                 address: user.address,
                 phoneNumber: user.phoneNumber,
+                vendorProfile: user.vendorProfile || null,
                 id: user.id,
             };
             jwt.sign(
