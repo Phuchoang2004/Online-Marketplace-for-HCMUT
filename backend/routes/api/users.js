@@ -92,6 +92,8 @@ router.post(
                 email: user.email,
                 role: user.role,
                 permission: user.permissions,
+                address: user.address,
+                phoneNumber: user.phoneNumber,
                 id: user.id,
             };
             jwt.sign(
@@ -105,6 +107,7 @@ router.post(
                     return res.status(200).json({ token: token });
                 }
             );
+            console.log(payload);
         } catch (error) {
             console.log(error);
             process.exit(1);

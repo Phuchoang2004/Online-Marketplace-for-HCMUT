@@ -1,0 +1,24 @@
+meta {
+  name: My Order
+  type: http
+  seq: 29
+}
+
+get {
+  url: http://localhost:5000/api/orders?status=PENDING
+  body: none
+  auth: none
+}
+
+params:query {
+  status: PENDING
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
