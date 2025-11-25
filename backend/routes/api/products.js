@@ -248,14 +248,29 @@ router.get('/api/products/:id', auth, async (req, res) => {
 // BROWSE APPROVED PRODUCTS (Public)
 router.get('/api/products', async (req, res) => {
     try {
-        const { keyword, category, sortBy = 'newest', page = 1, limit = 12 } = req.query;
+        const {
+            keyword,
+            category,
+            minPrice,
+            maxPrice,
+            sortBy = 'newest',
+            page = 1,
+            limit = 12
+        } = req.query;
 
         const filter = { approvalStatus: 'APPROVED' };
+
         if (keyword) filter.name = { $regex: keyword, $options: 'i' };
-        if (category) filter.category = category;
+        if (category && category !== 'all') filter.category = category;
+
+        if (minPrice || maxPrice) {
+            filter.price = {};
+            if (minPrice) filter.price.$gte = Number(minPrice);
+            if (maxPrice) filter.price.$lte = Number(maxPrice);
+        }
 
         const sortMap = {
-            price: { price: 1 },
+            "price-desc": { price: -1 },
             newest: { createdAt: -1 },
             popularity: { createdAt: -1 },
         };
@@ -263,7 +278,12 @@ router.get('/api/products', async (req, res) => {
         const skip = (Number(page) - 1) * Number(limit);
 
         const [items, total] = await Promise.all([
-            Product.find(filter).sort(sortMap[sortBy] || sortMap.newest).skip(skip).limit(Number(limit)),
+            Product.find(filter)
+                .populate('vendor', 'businessName')
+                .populate('category', 'name')
+                .sort(sortMap[sortBy] || sortMap.newest)
+                .skip(skip)
+                .limit(Number(limit)),
             Product.countDocuments(filter),
         ]);
 
