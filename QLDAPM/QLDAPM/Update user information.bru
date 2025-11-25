@@ -1,0 +1,19 @@
+meta {
+  name: Update user information
+  type: http
+  seq: 28
+}
+
+put {
+  url: http://localhost:5000/api/user
+  body: json
+  auth: none
+}
+
+body:json {
+    {
+      "fullName": "Phuc Dep Trai",
+      "address": "456 Tran Hung Dao, District 5, HCMC",
+      "phoneNumber": "+84909876543"
+    }
+}
