@@ -37,7 +37,7 @@ router.get('/my', auth, async (req, res) => {
         filter.user = user.id;
         if (type) filter.status = type.toUpperCase();
         orders = await Order.find(filter)
-            .populate('items.product', 'name price')
+            .populate('items.product', 'name price images')
             .sort({ createdAt: -1 });
         res.status(200).json({ success: true, orders });
     }catch (error) {

@@ -2,15 +2,11 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import { Button } from "../components/ui/button";
-import { Badge } from "../components/ui/badge"; // Assuming you have a badge component, or we'll style a div
 import {
     Loader2,
     Package,
     Calendar,
-    ShoppingBag,
-    ChevronRight,
-    Search,
-    Filter
+    ShoppingBag
 } from "lucide-react";
 
 // --- Types ---
@@ -18,7 +14,7 @@ interface Product {
     _id: string;
     name: string;
     price: number;
-    images?: string[];
+    images?: string[] | { url: string }[];
 }
 
 interface OrderItem {
@@ -37,6 +33,21 @@ interface Order {
     phoneNumber: string;
     createdAt: string;
 }
+
+// --- 1. Helper for Image URLs ---
+const getImageUrl = (imageData: string | { url: string } | undefined) => {
+    if (!imageData) return "https://placehold.co/100x100?text=No+Img";
+
+    // Handle case where image might be an object (from previous schema) or a string
+    const imagePath = typeof imageData === 'string' ? imageData : imageData.url;
+
+    if (!imagePath) return "https://placehold.co/100x100?text=No+Img";
+    if (imagePath.startsWith("http")) return imagePath;
+
+    // Replace /uploads with /static and prepend server URL
+    const formattedPath = imagePath.replace('/uploads', '/static');
+    return `http://localhost:5000${formattedPath}`;
+};
 
 const MyOrders = () => {
     const navigate = useNavigate();
@@ -61,7 +72,6 @@ const MyOrders = () => {
                 return;
             }
 
-            // Build URL with query param if filter is not ALL
             let url = "http://localhost:5000/api/orders/my";
             if (activeFilter !== "ALL") {
                 url += `?type=${activeFilter}`;
@@ -83,6 +93,7 @@ const MyOrders = () => {
             if (!res.ok) throw new Error("Failed to fetch orders");
 
             const data = await res.json();
+            console.log("Orders:", data);
             if (data.success) {
                 setOrders(data.orders);
             } else {
@@ -220,13 +231,15 @@ const MyOrders = () => {
                                     <div className="space-y-4">
                                         {order.items.map((item, index) => (
                                             <div key={index} className="flex items-start gap-4">
-                                                {/* Image fallback logic */}
                                                 <div className="h-16 w-16 bg-gray-100 rounded-md flex-shrink-0 overflow-hidden border border-gray-200">
                                                     {item.product && item.product.images && item.product.images.length > 0 ? (
                                                         <img
-                                                            src={item.product.images[0]}
+                                                            src={getImageUrl(item.product.images[0])}
                                                             alt={item.product.name}
                                                             className="h-full w-full object-cover"
+                                                            onError={(e) => {
+                                                                (e.target as HTMLImageElement).src = "https://placehold.co/100x100?text=Error";
+                                                            }}
                                                         />
                                                     ) : (
                                                         <div className="h-full w-full flex items-center justify-center text-gray-300">
@@ -247,9 +260,6 @@ const MyOrders = () => {
                                                             {item.product ? formatPrice(item.product.price * item.quantity) : "N/A"}
                                                         </p>
                                                     </div>
-                                                    <p className="font-medium text-gray-900 text-right text-sm">
-                                                        Shipping fee: {formatPrice(30000)}
-                                                    </p>
                                                 </div>
                                             </div>
                                         ))}
@@ -261,11 +271,16 @@ const MyOrders = () => {
                                     <div className="text-sm text-gray-500">
                                         {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-gray-600">Total:</span>
-                                        <span className="text-xl font-bold text-[#870000]">
-                                            {formatPrice(order.totalAmount + 30000 || 0)}
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-xs text-gray-500 mb-1">
+                                            (Shipping: {formatPrice(30000)})
                                         </span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-gray-600">Total:</span>
+                                            <span className="text-xl font-bold text-[#870000]">
+                                                {formatPrice((order.totalAmount || 0) + 30000)}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
