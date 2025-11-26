@@ -235,7 +235,7 @@ const Index = () => {
                             {products.length > 0 ? (
                                 products.map((product) => (
                                     <ProductCard
-                                        key={product._id}
+                                        id={product._id}
                                         image={getImageUrl(product)}
                                         title={product.name}
                                         price={product.price}

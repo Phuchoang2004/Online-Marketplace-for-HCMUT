@@ -2,8 +2,10 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {useNavigate} from "react-router-dom";
 
 interface ProductCardProps {
+    id: string;
   image: string;
   title: string;
   price: number;
@@ -12,7 +14,8 @@ interface ProductCardProps {
   seller?: string;
 }
 
-export const ProductCard = ({ 
+export const ProductCard = ({
+    id,
   image, 
   title, 
   price, 
@@ -20,6 +23,8 @@ export const ProductCard = ({
   category = "Electronics",
   seller = "Student Seller"
 }: ProductCardProps) => {
+    const navigate = useNavigate();
+
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer border-border">
       <div className="aspect-square overflow-hidden bg-muted">
@@ -43,7 +48,7 @@ export const ProductCard = ({
         <p className="text-2xl font-bold text-primary">{price.toLocaleString('vi-VN')}đ</p>
       </CardContent>
       <CardFooter className="p-4 pt-0">
-        <Button className="w-full" variant="outline">View Details</Button>
+        <Button className="w-full" variant="outline" onClick={() => navigate(`/product/${id}`)}>View Details</Button>
       </CardFooter>
     </Card>
   );

@@ -34,6 +34,8 @@ router.post('/api/cart/add', async (req, res) => {
 
     try {
         const product = await Product.findById(productId);
+        product.stock -= quantity;
+        await product.save()
         if (!product) return res.status(404).json({ error: 'Product not found' });
 
         if (product.stock < quantity) {
@@ -57,6 +59,7 @@ router.post('/api/cart/add', async (req, res) => {
         }
 
         await cart.save();
+
         const populatedCart = await cart.populate({
             path: 'items.product',
             select: 'name price images stock approvalStatus'
@@ -89,7 +92,14 @@ router.put('/api/cart/:productId', async (req, res) => {
             return res.status(400).json({ error: 'Not enough stock available' });
         }
 
+        if(quantity - item.quantity >= 0){
+            product.stock -= (quantity - item.quantity)
+        }else{
+            product.stock += (item.quantity - quantity)
+        }
+
         item.quantity = quantity;
+        await product.save()
         await cart.save();
 
         const populatedCart = await cart.populate({
@@ -110,6 +120,13 @@ router.delete('/api/cart/:productId', async (req, res) => {
     try {
         const cart = await Cart.findOne({ user: req.user.id });
         if (!cart) return res.status(404).json({ error: 'Cart not found' });
+        const itemToRemove = cart.items.find(item => item.product.toString() === productId);
+        if (!itemToRemove) {
+            return res.status(404).json({ error: 'Item not found in cart' });
+        }
+        await Product.findByIdAndUpdate(productId, {
+            $inc: { stock: itemToRemove.quantity }
+        });
 
         cart.items = cart.items.filter(i => i.product.toString() !== productId);
         await cart.save();

@@ -16,6 +16,7 @@ import Cart from "@/pages/Cart.tsx";
 import MyOrders from "@/pages/MyOrders.tsx";
 import ListProduct from "@/pages/ListProduct.tsx";
 import AddProduct from "@/pages/AddProduct.tsx";
+import ProductDetail from "@/pages/ProductDetail.tsx";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/myorder" element={<MyOrders/>}/>
             <Route path="/vendor/products" element={<ListProduct/>} />
             <Route path="/vendor/products/add" element={<AddProduct/>} />
+            <Route path="/product/:id" element={<ProductDetail/>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

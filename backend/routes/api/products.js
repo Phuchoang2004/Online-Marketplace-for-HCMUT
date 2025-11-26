@@ -160,12 +160,12 @@ router.put(
             const vendorId = await resolveApprovedVendorId(req.user);
             const product = await Product.findById(req.params.id);
             if (!product) return res.status(404).json({ errors: 'Product not found' });
-
             if (product.vendor.toString() !== vendorId.toString()) {
                 return res.status(403).json({ errors: 'Not owner of this product' });
             }
+            console.log(req.body)
 
-            const allowed = ['category', 'name', 'description', 'price', 'stock', 'images'];
+            const allowed = ['price', 'stock'];
             for (const k of allowed) if (k in req.body) product[k] = req.body[k];
 
             product.approvalStatus = 'PENDING';
@@ -259,6 +259,7 @@ router.get('/api/products', async (req, res) => {
         } = req.query;
 
         const filter = { approvalStatus: 'APPROVED' };
+        filter.stock = { $gt: 0 };
 
         if (keyword) filter.name = { $regex: keyword, $options: 'i' };
         if (category && category !== 'all') filter.category = category;

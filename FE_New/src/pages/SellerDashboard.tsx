@@ -220,7 +220,7 @@ const SellerDashboard = () => {
                         <h1 className="text-3xl md:text-4xl font-bold mb-2">Seller Dashboard</h1>
                         <p className="text-muted-foreground">Manage your listings and track your sales</p>
                     </div>
-                    <Button size="lg" variant="gold">
+                    <Button size="lg" variant="gold" onClick={() => navigate('/vendor/products/add')}>
                         <Plus className="mr-2 h-5 w-5" />
                         Add New Listing
                     </Button>

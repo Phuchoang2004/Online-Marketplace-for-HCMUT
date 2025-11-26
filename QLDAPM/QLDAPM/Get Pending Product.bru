@@ -5,18 +5,14 @@ meta {
 }
 
 get {
-  url: http://localhost:5050/api/products-pending
+  url: http://localhost:5000/api/products-pending
   body: none
-  auth: bearer
+  auth: none
 }
 
 headers {
   Content-Type: application/json
   Authorization: Bearer {{accessToken}}
-}
-
-auth:bearer {
-  token: 
 }
 
 tests {

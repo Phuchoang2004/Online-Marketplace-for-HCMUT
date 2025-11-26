@@ -269,7 +269,7 @@ const Marketplace = () => {
                             <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
                                 {products.map((product) => (
                                     <ProductCard
-                                        key={product._id}
+                                        id={product._id}
                                         image={getImageUrl(product)}
                                         title={product.name}
                                         price={product.price}
