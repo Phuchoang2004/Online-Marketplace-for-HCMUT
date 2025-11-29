@@ -78,10 +78,14 @@ const SellerDashboard = () => {
 
             // Check status of the items specific to this vendor
             const hasPending = vendorItems.some(i => i.status === 'PENDING');
-            const isCompleted = vendorItems.every(i => ['COMPLETED', 'SHIPPED'].includes(i.status));
+
+            // STRICT CHECK: Only count as completed/sales if status is strictly 'COMPLETED'
+            // (Previously this might have included 'SHIPPED')
+            const isStrictlyCompleted = vendorItems.every(i => i.status === 'COMPLETED');
 
             if (hasPending) pending++;
-            if (isCompleted) {
+
+            if (isStrictlyCompleted) {
                 completed++;
                 total += orderTotalForVendor;
             }
@@ -197,19 +201,13 @@ const SellerDashboard = () => {
 
     const stats = [
         {
-            title: "Total Sales",
+            title: "Total Sales (Completed)",
             value: metrics.totalSales.toLocaleString('vi-VN') + "đ",
             change: "All time",
             icon: DollarSign,
             color: "text-accent"
         },
-        {
-            title: "Active Listings",
-            value: "12",
-            change: "--",
-            icon: Package,
-            color: "text-primary"
-        },
+        // REMOVED: "Active Listings" card
         {
             title: "Pending Orders",
             value: metrics.pendingCount.toString(),
@@ -218,7 +216,7 @@ const SellerDashboard = () => {
             color: "text-muted-foreground"
         },
         {
-            title: "Completed",
+            title: "Completed Orders",
             value: metrics.completedCount.toString(),
             change: "Fulfilled",
             icon: CheckCircle,
@@ -254,8 +252,8 @@ const SellerDashboard = () => {
                     </Button>
                 </div>
 
-                {/* Stats Grid */}
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {/* Stats Grid - CHANGED: grid-cols-4 to grid-cols-3 */}
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                     {stats.map((stat, index) => (
                         <Card key={index}>
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -281,7 +279,6 @@ const SellerDashboard = () => {
                         <CardDescription>Manage your seller account</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {/* CHANGED: grid-cols-4 to grid-cols-3 and removed Analytics button */}
                         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
                             <Button
                                 variant="outline"
@@ -295,7 +292,6 @@ const SellerDashboard = () => {
                                 <Plus className="h-6 w-6" />
                                 <span>Add Product</span>
                             </Button>
-                            {/* CHANGED: Added navigation to /vendor/orders */}
                             <Button
                                 variant="outline"
                                 className="h-24 flex flex-col gap-2"
@@ -321,7 +317,7 @@ const SellerDashboard = () => {
                                     No orders found.
                                 </div>
                             ) : (
-                                orders.slice(0, 5).map((order) => { // Optional: slice to show only top 5 recent
+                                orders.slice(0, 5).map((order) => {
                                     const displayData = getOrderDisplayData(order);
                                     if (!displayData) return null;
 
