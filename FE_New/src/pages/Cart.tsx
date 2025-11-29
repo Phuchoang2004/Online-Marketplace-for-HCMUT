@@ -28,7 +28,7 @@ interface Product {
     _id: string;
     name: string;
     price: number;
-    images?: string[];
+    images?: { url: string }[];
     description?: string;
 }
 
@@ -82,6 +82,7 @@ const Cart = () => {
                 if (!res.ok) throw new Error("Failed to fetch cart");
 
                 const data = await res.json();
+                console.log(data);
                 const items = Array.isArray(data) ? data : (data.items || []);
                 setCartItems(items);
             } catch (err) {
@@ -461,7 +462,11 @@ const Cart = () => {
                                 <div key={item.product._id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex gap-4">
                                     <div className="h-24 w-24 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
                                         {item.product.images?.[0] ? (
-                                            <img src={item.product.images[0]} alt={item.product.name} className="h-full w-full object-cover" />
+                                            <img
+                                                src={`http://localhost:5000${item.product.images[0].url.replace('/uploads', '/static')}`}
+                                                alt={item.product.name}
+                                                className="h-full w-full object-cover"
+                                            />
                                         ) : (
                                             <div className="h-full w-full flex items-center justify-center text-gray-300"><Store /></div>
                                         )}
