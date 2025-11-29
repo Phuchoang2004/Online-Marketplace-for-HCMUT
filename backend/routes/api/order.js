@@ -14,8 +14,8 @@ router.get('/', auth, async (req, res) => {
         filter['items.vendor'] = user.vendorProfile;
         if (type) filter['items.status'] = type.toUpperCase();
       orders = await Order.find(filter)
-        .populate('user', 'fullName email')
-        .populate('items.product', 'name price')
+        .populate('user', 'fullName email address phoneNumber')
+        .populate('items.product', 'name price images')
         .sort({ createdAt: -1 });
     }else{
         res.status(403).json({ success: false, message: 'Unauthorized role' });
@@ -105,7 +105,7 @@ router.put('/:id/process', auth, async (req, res) => {
       });
     }
 
-    else if (user.role === 'CUSTOMER') {
+    else if(user.role === 'CUSTOMER' || user.role === 'ADMIN') {
         if (!action){
             return res.status(400).json({ success: false, message: 'Action is required' });
         }

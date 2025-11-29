@@ -2,12 +2,24 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import { Button } from "../components/ui/button";
+import { toast } from "sonner";
 import {
     Loader2,
     Package,
     Calendar,
-    ShoppingBag
+    ShoppingBag,
+    PackageCheck
 } from "lucide-react";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // --- Types ---
 interface Product {
@@ -28,23 +40,18 @@ interface Order {
     user: string;
     items: OrderItem[];
     totalAmount: number;
-    status: "PENDING" | "CONFIRMED" | "SHIPPING" | "COMPLETED" | "CANCELLED";
+    status: "PENDING" | "CONFIRMED" | "SHIPPING" | "SHIPPED" | "COMPLETED" | "CANCELLED";
     address: string;
     phoneNumber: string;
     createdAt: string;
 }
 
-// --- 1. Helper for Image URLs ---
+// --- Helper for Image URLs ---
 const getImageUrl = (imageData: string | { url: string } | undefined) => {
     if (!imageData) return "https://placehold.co/100x100?text=No+Img";
-
-    // Handle case where image might be an object (from previous schema) or a string
     const imagePath = typeof imageData === 'string' ? imageData : imageData.url;
-
     if (!imagePath) return "https://placehold.co/100x100?text=No+Img";
     if (imagePath.startsWith("http")) return imagePath;
-
-    // Replace /uploads with /static and prepend server URL
     const formattedPath = imagePath.replace('/uploads', '/static');
     return `http://localhost:5000${formattedPath}`;
 };
@@ -56,6 +63,10 @@ const MyOrders = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [activeFilter, setActiveFilter] = useState<string>("ALL");
+
+    // State for managing the confirmation dialog and processing
+    const [orderToConfirm, setOrderToConfirm] = useState<string | null>(null);
+    const [processingId, setProcessingId] = useState<string | null>(null);
 
     const filters = ["ALL", "PENDING", "SHIPPED", "COMPLETED", "CANCELLED"];
 
@@ -93,7 +104,6 @@ const MyOrders = () => {
             if (!res.ok) throw new Error("Failed to fetch orders");
 
             const data = await res.json();
-            console.log("Orders:", data);
             if (data.success) {
                 setOrders(data.orders);
             } else {
@@ -104,6 +114,49 @@ const MyOrders = () => {
             setError("Unable to load your order history.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    // --- Action Handlers ---
+
+    // 1. Opens the dialog
+    const confirmReceiveOrder = (orderId: string) => {
+        setOrderToConfirm(orderId);
+    };
+
+    // 2. Performs the API call
+    const handleProcessOrder = async () => {
+        if (!orderToConfirm) return;
+
+        const orderId = orderToConfirm;
+        setProcessingId(orderId);
+
+        try {
+            const token = localStorage.getItem("accessToken");
+            const res = await fetch(`http://localhost:5000/api/orders/${orderId}/process`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ action: "complete" })
+            });
+
+            const data = await res.json();
+            console.log(data);
+
+            if (res.ok && data.success) {
+                toast.success("Order marked as received successfully!");
+                await fetchOrders(); // Refresh list
+                setOrderToConfirm(null); // Close dialog
+            } else {
+                toast.error(data.message || "Failed to update order");
+            }
+        } catch (error) {
+            console.error("Error processing order:", error);
+            toast.error("Network error. Please try again.");
+        } finally {
+            setProcessingId(null);
         }
     };
 
@@ -127,7 +180,8 @@ const MyOrders = () => {
         switch (status) {
             case "PENDING": return "bg-yellow-100 text-yellow-800 border-yellow-200";
             case "CONFIRMED": return "bg-blue-100 text-blue-800 border-blue-200";
-            case "SHIPPING": return "bg-purple-100 text-purple-800 border-purple-200";
+            case "SHIPPING":
+            case "SHIPPED": return "bg-purple-100 text-purple-800 border-purple-200";
             case "COMPLETED": return "bg-green-100 text-green-800 border-green-200";
             case "CANCELLED": return "bg-red-100 text-red-800 border-red-200";
             default: return "bg-gray-100 text-gray-800 border-gray-200";
@@ -266,21 +320,38 @@ const MyOrders = () => {
                                     </div>
                                 </div>
 
-                                {/* Order Footer */}
-                                <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 flex justify-between items-center">
-                                    <div className="text-sm text-gray-500">
+                                {/* Order Footer (UPDATED LAYOUT) */}
+                                <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 flex justify-between items-end">
+                                    {/* Left: Item Count */}
+                                    <div className="text-sm text-gray-500 mb-2">
                                         {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
                                     </div>
-                                    <div className="flex flex-col items-end">
-                                        <span className="text-xs text-gray-500 mb-1">
-                                            (Shipping: {formatPrice(30000)})
-                                        </span>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-gray-600">Total:</span>
-                                            <span className="text-xl font-bold text-[#870000]">
-                                                {formatPrice((order.totalAmount || 0) + 30000)}
+
+                                    {/* Right: Vertical Stack (Price Top, Button Bottom) */}
+                                    <div className="flex flex-col items-end gap-3">
+                                        {/* Price Info */}
+                                        <div className="flex flex-col items-end">
+                                            <span className="text-xs text-gray-500 mb-1">
+                                                (Shipping: {formatPrice(30000)})
                                             </span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-gray-600">Total:</span>
+                                                <span className="text-xl font-bold text-[#870000]">
+                                                    {formatPrice((order.totalAmount || 0) + 30000)}
+                                                </span>
+                                            </div>
                                         </div>
+
+                                        {/* Action Button: Open Confirmation Dialog */}
+                                        {order.status === 'SHIPPED' && (
+                                            <Button
+                                                onClick={() => confirmReceiveOrder(order._id)}
+                                                className="bg-green-600 hover:bg-green-700 text-white transition-colors w-full sm:w-auto"
+                                            >
+                                                <PackageCheck className="mr-2 h-4 w-4" />
+                                                I have received the product
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -288,6 +359,40 @@ const MyOrders = () => {
                     </div>
                 )}
             </div>
+
+            {/* Confirmation Dialog */}
+            <AlertDialog open={!!orderToConfirm} onOpenChange={(open) => !open && setOrderToConfirm(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Order Receipt</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to mark this order as received?
+                            <br /><br />
+                            By confirming, you agree that the products have arrived in good condition. The order will be marked as <strong>COMPLETED</strong>.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={!!processingId}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleProcessOrder();
+                            }}
+                            disabled={!!processingId}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                        >
+                            {processingId ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Processing...
+                                </>
+                            ) : (
+                                "Yes, I Received It"
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

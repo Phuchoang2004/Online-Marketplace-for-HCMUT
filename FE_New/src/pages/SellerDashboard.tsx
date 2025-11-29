@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Package, DollarSign, TrendingUp, Plus, Clock, CheckCircle, Loader2 } from "lucide-react";
+import { Package, DollarSign, Plus, Clock, CheckCircle, Loader2, MapPin, Phone, User, PackageCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import {Navigate, useNavigate} from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 // --- Types based on your Mongoose Schema ---
 interface Product {
@@ -16,7 +17,7 @@ interface Product {
 
 interface OrderItem {
     product: Product;
-    vendor: string | { _id: string }; // Can be an ID string or a populated object
+    vendor: string | { _id: string };
     quantity: number;
     price: number;
     subtotal: number;
@@ -29,9 +30,11 @@ interface Order {
         _id: string;
         fullName: string;
         email: string;
+        address?: string;
+        phoneNumber?: string;
     };
     items: OrderItem[];
-    totalAmount: number; // This is the total for the whole order (all vendors)
+    totalAmount: number;
     createdAt: string;
 }
 
@@ -46,6 +49,8 @@ const SellerDashboard = () => {
     const { user, loading: authLoading } = useAuth();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loadingData, setLoadingData] = useState(true);
+    // Track which order is currently being processed to show specific loading state
+    const [processingId, setProcessingId] = useState<string | null>(null);
 
     // Dashboard Metrics State
     const [metrics, setMetrics] = useState<DashboardMetrics>({
@@ -53,45 +58,6 @@ const SellerDashboard = () => {
         pendingCount: 0,
         completedCount: 0
     });
-
-    // Fetch Orders
-    useEffect(() => {
-        const fetchOrders = async () => {
-            if (!user || user.role !== "VENDOR") return;
-
-            try {
-                const token = localStorage.getItem('accessToken');
-                // Fetching all orders to calculate stats correctly.
-                // If you only want pending, append ?status=PENDING, but that breaks "Total Sales" stats.
-                const response = await fetch('http://localhost:5000/api/orders', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                const data = await response.json();
-                console.log("Fetched Orders:", data);
-
-                if (data.success) {
-                    setOrders(data.orders);
-                    // We use user.vendorProfile because the OrderItem schema references 'Vendor'
-                    // and usually the User model links to Vendor via vendorProfile field.
-                    const vendorId = user.vendorProfile;
-                    calculateMetrics(data.orders, vendorId);
-                }
-            } catch (error) {
-                console.error("Failed to fetch orders:", error);
-            } finally {
-                setLoadingData(false);
-            }
-        };
-
-        if (!authLoading) {
-            fetchOrders();
-        }
-    }, [user, authLoading]);
 
     // Calculate Dashboard Metrics based on fetched data
     const calculateMetrics = (orderList: Order[], vendorId: string) => {
@@ -112,11 +78,14 @@ const SellerDashboard = () => {
 
             // Check status of the items specific to this vendor
             const hasPending = vendorItems.some(i => i.status === 'PENDING');
-            // Completed if all items are either shipped or completed (and not cancelled)
-            const isCompleted = vendorItems.every(i => ['COMPLETED', 'SHIPPED'].includes(i.status));
+
+            // STRICT CHECK: Only count as completed/sales if status is strictly 'COMPLETED'
+            // (Previously this might have included 'SHIPPED')
+            const isStrictlyCompleted = vendorItems.every(i => i.status === 'COMPLETED');
 
             if (hasPending) pending++;
-            if (isCompleted) {
+
+            if (isStrictlyCompleted) {
                 completed++;
                 total += orderTotalForVendor;
             }
@@ -129,6 +98,73 @@ const SellerDashboard = () => {
         });
     };
 
+    // Fetch Orders Function (Memoized to be called from Effect and Event Handlers)
+    const fetchOrders = useCallback(async () => {
+        if (!user || user.role !== "VENDOR") return;
+
+        try {
+            const token = localStorage.getItem('accessToken');
+            const response = await fetch('http://localhost:5000/api/orders', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+            console.log("Fetched Orders:", data);
+
+            if (data.success) {
+                setOrders(data.orders);
+                const vendorId = user.vendorProfile;
+                calculateMetrics(data.orders, vendorId);
+            }
+        } catch (error) {
+            console.error("Failed to fetch orders:", error);
+            toast.error("Failed to load orders");
+        } finally {
+            setLoadingData(false);
+        }
+    }, [user]);
+
+    // Initial Fetch
+    useEffect(() => {
+        if (!authLoading) {
+            fetchOrders();
+        }
+    }, [user, authLoading, fetchOrders]);
+
+    // --- New Function: Handle Process Order ---
+    const handleProcessOrder = async (orderId: string) => {
+        setProcessingId(orderId);
+        try {
+            const token = localStorage.getItem('accessToken');
+            const response = await fetch(`http://localhost:5000/api/orders/${orderId}/process`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                toast.success("Order processed successfully!");
+                // Re-fetch data to update UI and Metrics accurately
+                await fetchOrders();
+            } else {
+                toast.error(data.message || "Failed to process order");
+            }
+        } catch (error) {
+            console.error("Error processing order:", error);
+            toast.error("Network error while processing order");
+        } finally {
+            setProcessingId(null);
+        }
+    };
+
     // Helper to get display data for a row
     const getOrderDisplayData = (order: Order) => {
         const vendorId = user?.vendorProfile;
@@ -139,22 +175,19 @@ const SellerDashboard = () => {
             return itemVendorId === vendorId;
         });
 
-        if (myItems.length === 0) return null; // Should not happen given the API filter
+        if (myItems.length === 0) return null;
 
         const firstProduct = myItems[0]?.product?.name || "Unknown Product";
         const otherCount = myItems.length - 1;
         const displayProduct = otherCount > 0 ? `${firstProduct} (+${otherCount} others)` : firstProduct;
 
-        // Sum subtotal for this vendor only
         const totalAmount = myItems.reduce((acc, item) => acc + item.subtotal, 0);
 
-        // Determine aggregate status for this vendor's items in this order
-        // Priority: PENDING -> SHIPPED -> COMPLETED
         let status = 'COMPLETED';
         if (myItems.some(i => i.status === 'PENDING')) {
             status = 'PENDING';
         } else if (myItems.some(i => i.status === 'SHIPPED')) {
-            status = 'SHIPPED'; // If some are shipped and others completed/shipped, overall is shipped
+            status = 'SHIPPED';
         } else if (myItems.every(i => i.status === 'CANCELLED')) {
             status = 'CANCELLED';
         }
@@ -168,19 +201,13 @@ const SellerDashboard = () => {
 
     const stats = [
         {
-            title: "Total Sales",
+            title: "Total Sales (Completed)",
             value: metrics.totalSales.toLocaleString('vi-VN') + "đ",
             change: "All time",
             icon: DollarSign,
             color: "text-accent"
         },
-        {
-            title: "Active Listings",
-            value: "12", // Ideally fetch this from a /products/count endpoint
-            change: "--",
-            icon: Package,
-            color: "text-primary"
-        },
+        // REMOVED: "Active Listings" card
         {
             title: "Pending Orders",
             value: metrics.pendingCount.toString(),
@@ -189,7 +216,7 @@ const SellerDashboard = () => {
             color: "text-muted-foreground"
         },
         {
-            title: "Completed",
+            title: "Completed Orders",
             value: metrics.completedCount.toString(),
             change: "Fulfilled",
             icon: CheckCircle,
@@ -206,7 +233,6 @@ const SellerDashboard = () => {
     }
 
     if (!user) return <Navigate to="/login" replace />;
-    // Assuming 'VENDOR' is the role string
     if (user.role !== "VENDOR") return <Navigate to="/unauthorized" replace />;
 
     return (
@@ -226,8 +252,8 @@ const SellerDashboard = () => {
                     </Button>
                 </div>
 
-                {/* Stats Grid */}
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {/* Stats Grid - CHANGED: grid-cols-4 to grid-cols-3 */}
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                     {stats.map((stat, index) => (
                         <Card key={index}>
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -253,7 +279,7 @@ const SellerDashboard = () => {
                         <CardDescription>Manage your seller account</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
                             <Button
                                 variant="outline"
                                 className="h-24 flex flex-col gap-2"
@@ -266,13 +292,13 @@ const SellerDashboard = () => {
                                 <Plus className="h-6 w-6" />
                                 <span>Add Product</span>
                             </Button>
-                            <Button variant="outline" className="h-24 flex flex-col gap-2">
+                            <Button
+                                variant="outline"
+                                className="h-24 flex flex-col gap-2"
+                                onClick={() => navigate('/vendor/orders')}
+                            >
                                 <Clock className="h-6 w-6" />
                                 <span>Orders</span>
-                            </Button>
-                            <Button variant="outline" className="h-24 flex flex-col gap-2">
-                                <TrendingUp className="h-6 w-6" />
-                                <span>Analytics</span>
                             </Button>
                         </div>
                     </CardContent>
@@ -291,38 +317,88 @@ const SellerDashboard = () => {
                                     No orders found.
                                 </div>
                             ) : (
-                                orders.map((order) => {
+                                orders.slice(0, 5).map((order) => {
                                     const displayData = getOrderDisplayData(order);
-                                    if (!displayData) return null; // Skip if no items for this vendor in this order
+                                    if (!displayData) return null;
 
                                     const { productName, amount, status } = displayData;
 
                                     return (
                                         <div
                                             key={order._id}
-                                            className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                                            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors gap-4"
                                         >
-                                            <div className="flex-1">
-                                                <div className="font-semibold mb-1">{productName}</div>
-                                                <div className="text-sm text-muted-foreground">
-                                                    {order._id.slice(-6).toUpperCase()} • {order.user?.fullName || "Guest"} • {new Date(order.createdAt).toLocaleDateString('vi-VN')}
+                                            <div className="flex-1 space-y-3">
+                                                {/* Product Name & Date */}
+                                                <div>
+                                                    <div className="font-semibold text-lg">{productName}</div>
+                                                    <div className="text-xs text-muted-foreground flex gap-2 mt-1">
+                                                        <span className="bg-gray-100 px-2 py-0.5 rounded text-gray-600 font-mono">
+                                                            #{order._id.slice(-6).toUpperCase()}
+                                                        </span>
+                                                        <span>• {new Date(order.createdAt).toLocaleDateString('vi-VN')}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-sm text-gray-800 max-w-xl">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <User className="h-4 w-4 text-amber-600 shrink-0" />
+                                                            <span className="font-medium">{order.user?.fullName || "Guest"}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <Phone className="h-4 w-4 text-amber-600 shrink-0" />
+                                                            <span className="font-mono">{order.user?.phoneNumber || "No Phone"}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 sm:col-span-2">
+                                                            <MapPin className="h-4 w-4 text-amber-600 shrink-0" />
+                                                            <span className="truncate" title={order.user?.address}>
+                                                                {order.user?.address || "No Address Provided"}
+                                                            </span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-4">
+
+                                            {/* Price, Status & Actions */}
+                                            <div className="flex sm:flex-col items-center sm:items-end gap-4 sm:gap-3 justify-between border-t sm:border-t-0 pt-4 sm:pt-0">
                                                 <div className="text-right">
-                                                    <div className="font-bold">{amount.toLocaleString('vi-VN')}đ</div>
+                                                    <div className="font-bold text-lg text-[#870000]">
+                                                        {amount.toLocaleString('vi-VN')}đ
+                                                    </div>
                                                 </div>
-                                                <Badge
-                                                    variant={
-                                                        status === "COMPLETED"
-                                                            ? "default"
-                                                            : status === "PENDING"
-                                                                ? "secondary"
-                                                                : "outline"
-                                                    }
-                                                >
-                                                    {status}
-                                                </Badge>
+
+                                                <div className="flex items-center gap-2">
+                                                    <Badge
+                                                        className="px-3 py-1"
+                                                        variant={
+                                                            status === "COMPLETED" ? "default" :
+                                                                status === "PENDING" ? "secondary" : "outline"
+                                                        }
+                                                    >
+                                                        {status}
+                                                    </Badge>
+
+                                                    {/* Process Button - Only visible if PENDING */}
+                                                    {status === 'PENDING' && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="gold"
+                                                            className="h-7 text-xs"
+                                                            onClick={() => handleProcessOrder(order._id)}
+                                                            disabled={processingId === order._id}
+                                                        >
+                                                            {processingId === order._id ? (
+                                                                <Loader2 className="h-3 w-3 animate-spin" />
+                                                            ) : (
+                                                                <>
+                                                                    <PackageCheck className="h-3 w-3 mr-1" />
+                                                                    Process
+                                                                </>
+                                                            )}
+                                                        </Button>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     );
@@ -330,7 +406,7 @@ const SellerDashboard = () => {
                             )}
                         </div>
                         <div className="mt-6 text-center">
-                            <Button variant="outline">View All Orders</Button>
+                            <Button variant="outline" onClick={() => navigate('/vendor/orders')}>View All Orders</Button>
                         </div>
                     </CardContent>
                 </Card>
