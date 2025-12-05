@@ -10,7 +10,7 @@ const bodyParser = require('body-parser')
 //connect db
 connectDB();
 app.use(express.json({extended : false}));
-app.use(cors({origin:'http://localhost:3000'}));
+app.use(cors({origin:'http://localhost:3000', allowMethods:['GET','POST','PUT','DELETE', 'OPTIONS' ], credentials: true, exposedHeaders: ['Authorization', 'Content-Type', 'Accept', 'Origin', 'X-Requested-With', 'Access-Control-Allow-Credentials']}));
 const productsRoute = require('./routes/api/products');
 app.use('/static', express.static(path.join(__dirname, 'uploads')));
 app.use(bodyParser.json({ limit: '10mb' }));
